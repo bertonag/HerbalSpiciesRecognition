@@ -1,0 +1,50 @@
+# ── Virtual environment ───────────────────────────────────────────────────────
+HerbalVenv/
+venv/
+.venv/
+env/
+
+# ── Python cache ──────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# ── Dataset (large – re-extract from zip locally) ────────────────────────────
+dataset/
+
+# ── Model weights & training runs (large binaries) ───────────────────────────
+runs/
+*.pt
+*.onnx
+*.torchscript
+
+# ── Feedback / user data ──────────────────────────────────────────────────────
+feedback/
+expert_queries.json
+
+# ── Office documents ──────────────────────────────────────────────────────────
+*.pptx
+*.ppt
+*.pdf
+*.docx
+*.doc
+*.odt
+*.xlsx
+*.xls
+*.ods
+
+# ── Dataset zip (keep in repo? comment out if you want to track it) ───────────
+*.zip
+
+# ── OS junk ───────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.suo
+*.user
