@@ -181,12 +181,7 @@ python retrain.py --epochs 40 --device 0   # GPU
 
 ## Dataset Notes
 
-The dataset contains a mix of two annotation formats:
-
-- **285** polygon segmentation annotations
-- **22** bounding-box annotations (`cx cy w h`)
-
-`train.py` automatically converts all bounding-box annotations to four-corner polygon format before training, so no data is discarded. This fixes a `RuntimeError` that occurs when YOLOv8-seg encounters bbox-only labels in a mini-batch.
+All annotations are polygon segmentation format (YOLO instance segmentation). The dataset has been fully re-annotated; no bounding-box-only labels remain.
 
 ---
 

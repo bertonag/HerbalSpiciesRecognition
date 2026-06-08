@@ -3,10 +3,8 @@ Herbal Plant Recognition - Training Script
 ==========================================
 Steps:
   1. Extract dataset from zip
-  2. Convert any bbox-only annotations to 4-corner polygons
-     so ALL 307 annotations are usable by the segmentation model
-  3. Fix data.yaml paths
-  4. Train YOLOv8n-seg with transfer learning
+  2. Fix data.yaml paths
+  3. Train YOLOv8n-seg with transfer learning
 
 Usage:
     python train.py
@@ -53,55 +51,6 @@ def fix_yaml_paths():
     return data
 
 
-# ── annotation conversion ────────────────────────────────────────────────────
-
-def bbox_to_polygon(cx: float, cy: float, w: float, h: float) -> list[float]:
-    """
-    Convert a YOLOv8 bounding box (cx cy w h, normalised) to a 4-corner
-    polygon (x1 y1 x2 y2 x3 y3 x4 y4, normalised, clockwise from top-left).
-    Coordinates are clamped to [0, 1].
-    """
-    x1, y1 = cx - w / 2, cy - h / 2
-    x2, y2 = cx + w / 2, cy - h / 2
-    x3, y3 = cx + w / 2, cy + h / 2
-    x4, y4 = cx - w / 2, cy + h / 2
-    pts = [x1, y1, x2, y2, x3, y3, x4, y4]
-    return [max(0.0, min(1.0, v)) for v in pts]
-
-
-def convert_label_file(path: Path) -> int:
-    """
-    Rewrite a label file so that bbox-only lines (5 tokens) become
-    4-corner polygon lines (9 tokens).  Returns the number of lines converted.
-    """
-    lines = path.read_text(encoding="utf-8").strip().splitlines()
-    converted, n_conv = [], 0
-    for line in lines:
-        tokens = line.strip().split()
-        if not tokens:
-            continue
-        if len(tokens) == 5:           # bbox format: class cx cy w h
-            cls_id = tokens[0]
-            cx, cy, w, h = map(float, tokens[1:])
-            poly = bbox_to_polygon(cx, cy, w, h)
-            converted.append(cls_id + " " + " ".join(f"{v:.6f}" for v in poly))
-            n_conv += 1
-        else:                           # already a polygon – keep as-is
-            converted.append(line)
-    path.write_text("\n".join(converted) + "\n", encoding="utf-8")
-    return n_conv
-
-
-def convert_all_labels():
-    """Convert every bbox-only annotation in the dataset to polygon format."""
-    label_files = list(DATASET_DIR.rglob("labels/*.txt"))
-    total_conv = 0
-    for lf in label_files:
-        total_conv += convert_label_file(lf)
-    print(f"[INFO] Converted {total_conv} bbox annotations → 4-corner polygons "
-          f"across {len(label_files)} label files.")
-
-
 # ── training ─────────────────────────────────────────────────────────────────
 
 def train(epochs: int, batch: int, device: str, resume: bool):
@@ -119,7 +68,6 @@ def train(epochs: int, batch: int, device: str, resume: bool):
         return BEST_PT
 
     extract_dataset()
-    convert_all_labels()   # bbox → polygon so seg model sees ALL annotations
     fix_yaml_paths()
 
     print(f"\n[INFO] Training YOLOv8n-seg for up to {epochs} epochs …")
