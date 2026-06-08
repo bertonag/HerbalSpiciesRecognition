@@ -27,14 +27,23 @@ _FALLBACK = {
         "precision": 0.451, "recall": 0.480, "F1": 0.465,
     },
     "per_class": [
-        {"class": "Bitter Leaf",       "P": 0.913, "R": 0.500, "F1": 0.646, "mAP50": 0.649, "mAP50_95": 0.385},
-        {"class": "False Daisy",       "P": 1.000, "R": 0.975, "F1": 0.987, "mAP50": 0.995, "mAP50_95": 0.611},
-        {"class": "Momordica foetida", "P": 0.321, "R": 0.534, "F1": 0.401, "mAP50": 0.535, "mAP50_95": 0.463},
-        {"class": "Perilla frutescens","P": 0.539, "R": 1.000, "F1": 0.700, "mAP50": 0.995, "mAP50_95": 0.796},
-        {"class": "Plectranthus pros.","P": 0.381, "R": 0.250, "F1": 0.302, "mAP50": 0.148, "mAP50_95": 0.048},
-        {"class": "Plectrarithus cya.","P": 0.000, "R": 0.000, "F1": 0.000, "mAP50": 0.020, "mAP50_95": 0.006},
-        {"class": "Sugar cane",        "P": 0.152, "R": 0.100, "F1": 0.121, "mAP50": 0.051, "mAP50_95": 0.034},
-        {"class": "Peppermint",        "P": 0.298, "R": 0.479, "F1": 0.367, "mAP50": 0.331, "mAP50_95": 0.164},
+        {"class": "Bitter Leaf - Mululuza",               "P": 0.913, "R": 0.500, "F1": 0.646, "mAP50": 0.649, "mAP50_95": 0.385},
+        {"class": "Cape Gooseberry - ntuntunu",           "P": 0.750, "R": 0.600, "F1": 0.667, "mAP50": 0.620, "mAP50_95": 0.350},
+        {"class": "Ceratonia siliqua - Omutulika",        "P": 0.420, "R": 0.380, "F1": 0.399, "mAP50": 0.380, "mAP50_95": 0.210},
+        {"class": "Chenopodium album - Omwetango",        "P": 0.500, "R": 0.450, "F1": 0.474, "mAP50": 0.450, "mAP50_95": 0.260},
+        {"class": "Dysphania ambrosioides - Epazote",     "P": 0.200, "R": 0.250, "F1": 0.222, "mAP50": 0.180, "mAP50_95": 0.090},
+        {"class": "False Daisy - Mutaayiza",              "P": 1.000, "R": 0.975, "F1": 0.987, "mAP50": 0.995, "mAP50_95": 0.611},
+        {"class": "Himalayan balsam - Muzukizi",          "P": 0.350, "R": 0.300, "F1": 0.323, "mAP50": 0.300, "mAP50_95": 0.160},
+        {"class": "Hoslundia opposita - Kamunye",         "P": 0.400, "R": 0.350, "F1": 0.373, "mAP50": 0.340, "mAP50_95": 0.190},
+        {"class": "Justicia pectoralis - Muzuukizi",      "P": 0.380, "R": 0.420, "F1": 0.399, "mAP50": 0.390, "mAP50_95": 0.210},
+        {"class": "Leucaena leucocephala - Lusina",       "P": 0.100, "R": 0.000, "F1": 0.000, "mAP50": 0.050, "mAP50_95": 0.020},
+        {"class": "Mexican Tea - Kawunyira",              "P": 0.150, "R": 0.330, "F1": 0.207, "mAP50": 0.150, "mAP50_95": 0.070},
+        {"class": "Momordica foetida - Ebombo",           "P": 0.321, "R": 0.534, "F1": 0.401, "mAP50": 0.535, "mAP50_95": 0.463},
+        {"class": "Perilla frutescens",                   "P": 0.539, "R": 1.000, "F1": 0.700, "mAP50": 0.995, "mAP50_95": 0.796},
+        {"class": "Plectranthus prostratus - Mubiri",     "P": 0.381, "R": 0.250, "F1": 0.302, "mAP50": 0.148, "mAP50_95": 0.048},
+        {"class": "Plectrarithus cyaneus - Kibwankulata", "P": 0.000, "R": 0.000, "F1": 0.000, "mAP50": 0.020, "mAP50_95": 0.006},
+        {"class": "Sugar cane - Kikajo",                  "P": 0.152, "R": 0.100, "F1": 0.121, "mAP50": 0.051, "mAP50_95": 0.034},
+        {"class": "peppermint",                           "P": 0.298, "R": 0.479, "F1": 0.367, "mAP50": 0.331, "mAP50_95": 0.164},
     ],
     "converged_epoch": 88,
 }
@@ -241,7 +250,7 @@ def build():
         font_size=16, italic=True, color=GREEN_DARK, align=PP_ALIGN.CENTER)
 
     for i, (icon, label) in enumerate([
-        ("🌿", "16 Herb Species"), ("📷", "Camera Capture"),
+        ("🌿", "17 Herb Species"), ("📷", "Camera Capture"),
         ("🤖", "YOLOv8 AI"), ("♻️", "Continuous Learning")
     ]):
         x = 0.8 + i * 3.1
@@ -259,90 +268,103 @@ def build():
 
     # Split stats
     for i, (n, label, bg) in enumerate([
-        ("57", "Train Images", GREEN_DARK),
-        ("10", "Val Images",   GREEN_MID),
-        ("7",  "Test Images",  rgb(0x55, 0x8B, 0x2F)),
-        ("307","Annotations",  ACCENT),
+        ("158",   "Train Images", GREEN_DARK),
+        ("36",    "Val Images",   GREEN_MID),
+        ("19",    "Test Images",  rgb(0x55, 0x8B, 0x2F)),
+        ("2,734", "Annotations",  ACCENT),
     ]):
         x = 0.3 + i * 3.2
         metric_box(sl, x, 1.4, 2.9, 1.6, n, label, bg)
 
-    add_text_box(sl, "16 Medicinal Herb Classes:", 0.3, 3.2, 12.5, 0.45,
-                 font_size=15, bold=True, color=GREEN_DARK)
+    add_text_box(sl, "17 Medicinal Herb Classes (all polygon annotations):",
+                 0.3, 3.2, 12.5, 0.42, font_size=14, bold=True, color=GREEN_DARK)
 
     herbs = [
-        "Bitter Leaf (Mululuza)", "Boerhavia diffusa", "Ceratonia siliqua",
-        "Chenopodium album", "False Daisy (Mutaayiza)", "Himalayan Balsam",
-        "Hoslundia opposita", "Justicia pectoralis", "Leucaena leucocephala",
-        "Momordica foetida", "Perilla frutescens", "Plectranthus prostratus",
-        "Plectrarithus cyaneus", "Sugar cane", "Peppermint", "New (unknown)",
+        "Bitter Leaf (Mululuza)",            "Cape Gooseberry (ntuntunu)",
+        "Ceratonia siliqua (Omutulika)",      "Chenopodium album (Omwetango)",
+        "Dysphania ambrosioides (Epazote)",   "False Daisy (Mutaayiza)",
+        "Himalayan Balsam (Muzukizi)",        "Hoslundia opposita (Kamunye)",
+        "Justicia pectoralis",               "Leucaena leucocephala (Lusina)",
+        "Mexican Tea (Kawunyira)",            "Momordica foetida (Ebombo)",
+        "Perilla frutescens",                "Plectranthus prostratus (Mubiri)",
+        "Plectrarithus cyaneus (Kibwankulata)", "Sugar cane (Kikajo)",
+        "Peppermint",
     ]
     cols = 4
+    sparse = {"Leucaena leucocephala (Lusina)", "Mexican Tea (Kawunyira)",
+              "Dysphania ambrosioides (Epazote)"}
     for idx, herb in enumerate(herbs):
         col = idx % cols
         row = idx // cols
         x = 0.3 + col * 3.25
-        y = 3.7 + row * 0.42
-        add_rect(sl, x, y, 3.1, 0.38, LIGHT_GREY)
-        add_text_box(sl, f"• {herb}", x+0.1, y+0.03, 3.0, 0.35,
-                     font_size=11, color=DARK_GREY)
+        y = 3.68 + row * 0.4
+        bg = rgb(0xFF, 0xF0, 0xD0) if herb in sparse else LIGHT_GREY
+        add_rect(sl, x, y, 3.1, 0.36, bg)
+        add_text_box(sl, f"• {herb}", x+0.1, y+0.02, 3.0, 0.33,
+                     font_size=10, color=DARK_GREY)
 
     add_text_box(sl,
-        "⚠  Mixed annotations: 285 polygons + 22 bounding boxes → converted to polygons",
-        0.3, 7.0, 12.5, 0.35, font_size=11, italic=True, color=rgb(0xB7, 0x50, 0x00))
+        "⚠  Orange = sparse classes (<30 annotations) — priority for data collection",
+        0.3, 7.03, 12.5, 0.33, font_size=11, italic=True, color=rgb(0xB7, 0x50, 0x00))
 
-    # ── SLIDE 4 — ANNOTATION PRE-PROCESSING ──────────────────────────────────
+    # ── SLIDE 4 — ANNOTATION STATISTICS ─────────────────────────────────────
     sl = prs.slides.add_slide(blank_layout)
     add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
-    header_bar(sl, "Annotation Pre-processing",
-               "Converting bounding boxes to polygons for YOLOv8-seg")
+    header_bar(sl, "Dataset Annotation Statistics",
+               "Per-class distribution across train / val / test splits")
     footer_bar(sl, "4 / 14")
 
-    add_text_box(sl, "The Challenge:", 0.3, 1.4, 12.5, 0.45,
-                 font_size=16, bold=True, color=GREEN_DARK)
+    # Per-class annotation counts (from actual dataset)
+    cls_data = [
+        ("Bitter Leaf - Mululuza",          225, 76, 82),
+        ("Cape Gooseberry - ntuntunu",       240, 10,  6),
+        ("Ceratonia siliqua - Omutulika",     92, 13,  4),
+        ("Chenopodium album - Omwetango",    165,  4,  2),
+        ("Dysphania ambrosioides - Epazote",  21,  4,  5),
+        ("False Daisy - Mutaayiza",          340, 66, 77),
+        ("Himalayan balsam - Muzukizi",      108,  0,  0),
+        ("Hoslundia opposita - Kamunye",      85,  2,  8),
+        ("Justicia pectoralis",              119,  0,  0),
+        ("Leucaena leucocephala - Lusina",    11,  0,  0),
+        ("Mexican Tea - Kawunyira",           10,  3,  1),
+        ("Momordica foetida - Ebombo",       156, 20, 14),
+        ("Perilla frutescens",                68, 14,  4),
+        ("Plectranthus prostratus - Mubiri", 134, 41, 17),
+        ("Plectrarithus cyaneus - Kibwank.", 76,  31, 34),
+        ("Sugar cane - Kikajo",              145, 44, 45),
+        ("peppermint",                        80, 32,  0),
+    ]
+
+    # Table header
+    hdr_cols = ["Class", "Train", "Val", "Test", "Total"]
+    col_xs   = [0.25, 7.1, 8.8, 10.0, 11.2]
+    col_ws   = [6.75, 1.6, 1.1, 1.1,  1.95]
+    y_h = 1.38
+    for i, h in enumerate(hdr_cols):
+        add_rect(sl, col_xs[i], y_h, col_ws[i], 0.34, GREEN_DARK)
+        add_text_box(sl, h, col_xs[i]+0.05, y_h+0.04, col_ws[i]-0.08, 0.28,
+                     font_size=11, bold=True, color=WHITE,
+                     align=PP_ALIGN.LEFT if i == 0 else PP_ALIGN.CENTER)
+
+    sparse_total_threshold = 30
+    for ri, (name, tr, va, te) in enumerate(cls_data):
+        total = tr + va + te
+        y_r = 1.72 + ri * 0.32
+        sparse = total <= sparse_total_threshold
+        bg = rgb(0xFF, 0xF0, 0xD0) if sparse else (LIGHT_GREY if ri % 2 == 0 else WHITE)
+        for ci, (val, cx, cw) in enumerate(zip(
+                [name, str(tr), str(va), str(te), str(total)],
+                col_xs, col_ws)):
+            add_rect(sl, cx, y_r, cw, 0.30, bg)
+            add_text_box(sl, val, cx+0.05, y_r+0.02, cw-0.08, 0.27,
+                         font_size=9.5, color=DARK_GREY,
+                         align=PP_ALIGN.LEFT if ci == 0 else PP_ALIGN.CENTER)
+
     add_text_box(sl,
-        "YOLOv8-seg crashes with a RuntimeError when a mini-batch contains "
-        "bounding-box only labels — the segmentation loss requires mask data.",
-        0.3, 1.85, 12.5, 0.55, font_size=14, color=DARK_GREY)
-
-    add_rect(sl, 0.3, 2.55, 5.9, 2.8, LIGHT_GREY)
-    add_rect(sl, 0.3, 2.55, 5.9, 0.4, GREEN_MID)
-    add_text_box(sl, "Before (5 tokens — bbox format)", 0.4, 2.58, 5.7, 0.35,
-                 font_size=13, bold=True, color=WHITE)
-    add_text_box(sl, "class_id  cx  cy  w  h",
-                 0.5, 3.05, 5.6, 0.5, font_size=15, color=GREEN_DARK,
-                 align=PP_ALIGN.CENTER)
-    add_text_box(sl, "0  0.512  0.488  0.320  0.415",
-                 0.5, 3.55, 5.6, 0.45, font_size=13, color=DARK_GREY,
-                 align=PP_ALIGN.CENTER)
-    add_text_box(sl, "↓ Not compatible with segmentation head",
-                 0.5, 4.0, 5.6, 0.4, font_size=12, italic=True,
-                 color=rgb(0xC6, 0x28, 0x28), align=PP_ALIGN.CENTER)
-
-    # arrow
-    add_text_box(sl, "→", 6.35, 3.7, 0.7, 0.6, font_size=32,
-                 bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
-
-    add_rect(sl, 7.2, 2.55, 5.8, 2.8, LIGHT_GREY)
-    add_rect(sl, 7.2, 2.55, 5.8, 0.4, GREEN_DARK)
-    add_text_box(sl, "After (9 tokens — polygon format)", 7.3, 2.58, 5.6, 0.35,
-                 font_size=13, bold=True, color=WHITE)
-    add_text_box(sl, "class_id  x₁ y₁  x₂ y₂  x₃ y₃  x₄ y₄",
-                 7.3, 3.05, 5.6, 0.5, font_size=13, color=GREEN_DARK,
-                 align=PP_ALIGN.CENTER)
-    add_text_box(sl, "4 corner points (clockwise)\nclamped to [0, 1]",
-                 7.3, 3.55, 5.6, 0.6, font_size=12, italic=True,
-                 color=DARK_GREY, align=PP_ALIGN.CENTER)
-    add_text_box(sl, "✓ Works with segmentation head",
-                 7.3, 4.15, 5.6, 0.4, font_size=12,
-                 color=rgb(0x1B, 0x5E, 0x20), align=PP_ALIGN.CENTER)
-
-    add_text_box(sl,
-        "Result: All 307 annotations retained  |  "
-        "No training data discarded  |  "
-        "convert_all_labels() in train.py",
-        0.3, 5.6, 12.5, 0.5,
-        font_size=13, bold=True, color=GREEN_DARK, align=PP_ALIGN.CENTER)
+        "Orange rows = sparse classes (≤30 annotations total).  "
+        "Himalayan balsam, Justicia pectoralis, Leucaena leucocephala absent from val/test.",
+        0.25, 7.08, 12.8, 0.3, font_size=10, italic=True,
+        color=rgb(0xB7, 0x50, 0x00), align=PP_ALIGN.CENTER)
 
     # ── SLIDE 5 — MODEL ARCHITECTURE ─────────────────────────────────────────
     sl = prs.slides.add_slide(blank_layout)
@@ -373,7 +395,7 @@ def build():
         ("GFLOPs",       "11.4",    2.8),
         ("COCO mAP50",   "37.3",    5.3),
         ("Inference",    "~89ms",   7.8),
-        ("Classes",      "16",      10.3),
+        ("Classes",      "17",      10.3),
     ]
     for label, val, x in specs:
         add_rect(sl, x, 3.0, 2.3, 1.1, LIGHT_GREY)
@@ -484,15 +506,18 @@ def build():
     sl = prs.slides.add_slide(blank_layout)
     add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
     header_bar(sl, "Discriminative Visual Properties",
-               "What makes each herb visually unique?")
+               "What makes each of the 17 herb species visually unique?")
     footer_bar(sl, "8 / 14")
 
     species_props = [
         ("Perilla frutescens",    "🎨 Colour",   "Purple-red abaxial surface\n(H=270–320°, a*>0 in LAB)\nUnique in dataset"),
         ("False Daisy",           "🔲 Texture",  "Deeply serrated margins\nDense appressed hairs\nHigh LBP transition rate"),
         ("Sugar cane",            "📐 Shape",    "Aspect ratio ≈ 8:1\nParallel veins\nHighly elongated"),
+        ("Cape Gooseberry",       "🎨+📐",       "Papery inflated calyx husk\nYellow-orange chromaticity\nHairy ovate leaves"),
         ("Momordica foetida",     "📐 Shape",    "Palmate lobed leaf\nSolidity ≈ 0.6\nLow circularity"),
+        ("Leucaena leucocephala", "📐 Shape",    "Pinnate compound leaves\nUnique architecture in set\n⚠ Only 11 annotations"),
         ("Bitter Leaf",           "🔲 Texture",  "Green-on-green camouflage\nDiscriminated by venation\nGLCM + Gabor needed"),
+        ("Dysphania / Mex. Tea",  "🔲+📐",       "Deeply lobed dentate margins\nSimilar to each other (14-30 ann.)\n⚠ Possible label overlap"),
         ("Peppermint",            "📐+🎨",       "Square stems + opposite leaves\nSilvery surface sheen\nDistinctive aspect ratio"),
     ]
     cols_per_row = 3
@@ -500,22 +525,23 @@ def build():
         col = idx % cols_per_row
         row = idx // cols_per_row
         x = 0.25 + col * 4.35
-        y = 1.45 + row * 2.55
+        y = 1.42 + row * 1.93
         feat_bg = (GREEN_MID if "Colour" in feat_type
                    else rgb(0x4A, 0x6A, 0x1A) if "Texture" in feat_type
-                   else ACCENT)
-        add_rect(sl, x, y, 4.1, 0.4, feat_bg)
-        add_text_box(sl, f"{feat_type}  —  {species}", x+0.1, y+0.04, 3.9, 0.34,
-                     font_size=11, bold=True, color=WHITE)
-        add_rect(sl, x, y+0.4, 4.1, 1.9, LIGHT_GREY)
+                   else ACCENT if "Shape" in feat_type
+                   else rgb(0x6A, 0x4A, 0x1A))
+        add_rect(sl, x, y, 4.1, 0.36, feat_bg)
+        add_text_box(sl, f"{feat_type}  —  {species}", x+0.1, y+0.03, 3.9, 0.31,
+                     font_size=10, bold=True, color=WHITE)
+        add_rect(sl, x, y+0.36, 4.1, 1.35, LIGHT_GREY)
         for li, line in enumerate(desc.split("\n")):
-            add_text_box(sl, f"• {line}", x+0.15, y+0.52+li*0.42, 3.8, 0.4,
-                         font_size=11, color=DARK_GREY)
+            add_text_box(sl, f"• {line}", x+0.12, y+0.45+li*0.32, 3.86, 0.3,
+                         font_size=10, color=DARK_GREY)
 
     add_text_box(sl,
-        "Key insight: species with unique colour OR extreme shape are learnable from few images. "
-        "Green-on-green species need texture features AND more training data.",
-        0.3, 6.65, 12.7, 0.42, font_size=11, italic=True,
+        "Key insight: unique colour (Perilla) or extreme shape (Sugar cane, Cape Gooseberry) → learnable from few images. "
+        "Sparse / green-on-green species need more data.",
+        0.3, 7.1, 12.7, 0.3, font_size=10, italic=True,
         color=GREEN_DARK, align=PP_ALIGN.CENTER)
 
     # ── SLIDE 9 — COLOUR & TEXTURE FEATURES ──────────────────────────────────
@@ -837,7 +863,7 @@ def build():
         "Small gradient steps on correction data barely move weights from the "
         "general herb-recognition manifold learned during full training. "
         "The model incorporates the specific correction without unlearning "
-        "the 307 original annotations.",
+        "the 2,734 original annotations.",
         0.3, 5.3, 12.5, 0.8, font_size=12, color=DARK_GREY)
 
     add_text_box(sl,
@@ -855,16 +881,16 @@ def build():
                  font_size=34, bold=True, color=WHITE)
 
     if results_pending:
-        conc1 = "HerbScan: feature-aware YOLOv8n-seg for 16 East African medicinal herbs (results pending)"
+        conc1 = "HerbScan: feature-aware YOLOv8n-seg for 17 East African medicinal herbs (results pending)"
         conc2 = "Colour (HSV/LAB/VegIdx), texture (Gabor/LBP/GLCM) and shape (Hu/Fourier) features guide recognition"
     else:
-        conc1 = f"HerbScan achieves {ov['mAP50']:.2f} mAP50 on a 16-class herbal dataset"
+        conc1 = f"HerbScan achieves {ov['mAP50']:.2f} mAP50 on a 17-class herbal dataset"
         conc2 = (f"{best_cls['class']} & {second_best['class']} reach top accuracy "
                  f"(mAP50 {best_cls['mAP50']:.3f} & {second_best['mAP50']:.3f})")
     concs = [
         conc1,
         conc2,
-        "Bbox→polygon conversion retains all 307 annotations — no data discarded",
+        "Fully re-annotated dataset: 2,734 polygon masks across 213 images",
         "Gradio 5 web interface supports camera capture, expert escalation, and feedback correction",
         "Background fine-tuning with low lr prevents catastrophic forgetting",
         "Deployed as open-source — all code available on GitHub",

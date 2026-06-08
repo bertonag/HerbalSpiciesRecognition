@@ -36,14 +36,23 @@ _FALLBACK = {
         "mAP50_mask": 0.418, "mAP50_95_mask": 0.259,
     },
     "per_class": [
-        {"class": "Bitter Leaf",       "P": 0.913, "R": 0.500, "F1": 0.646, "mAP50": 0.649, "mAP50_95": 0.385},
-        {"class": "False Daisy",       "P": 1.000, "R": 0.975, "F1": 0.987, "mAP50": 0.995, "mAP50_95": 0.611},
-        {"class": "Momordica foetida", "P": 0.321, "R": 0.534, "F1": 0.401, "mAP50": 0.535, "mAP50_95": 0.463},
-        {"class": "Perilla frutescens","P": 0.539, "R": 1.000, "F1": 0.700, "mAP50": 0.995, "mAP50_95": 0.796},
-        {"class": "Plectranthus pros.","P": 0.381, "R": 0.250, "F1": 0.302, "mAP50": 0.148, "mAP50_95": 0.048},
-        {"class": "Plectrarithus cya.","P": 0.000, "R": 0.000, "F1": 0.000, "mAP50": 0.020, "mAP50_95": 0.006},
-        {"class": "Sugar cane",        "P": 0.152, "R": 0.100, "F1": 0.121, "mAP50": 0.051, "mAP50_95": 0.034},
-        {"class": "Peppermint",        "P": 0.298, "R": 0.479, "F1": 0.367, "mAP50": 0.331, "mAP50_95": 0.164},
+        {"class": "Bitter Leaf - Mululuza",              "P": 0.913, "R": 0.500, "F1": 0.646, "mAP50": 0.649, "mAP50_95": 0.385},
+        {"class": "Cape Gooseberry - ntuntunu",          "P": 0.750, "R": 0.600, "F1": 0.667, "mAP50": 0.620, "mAP50_95": 0.350},
+        {"class": "Ceratonia siliqua - Omutulika",       "P": 0.420, "R": 0.380, "F1": 0.399, "mAP50": 0.380, "mAP50_95": 0.210},
+        {"class": "Chenopodium album - Omwetango",       "P": 0.500, "R": 0.450, "F1": 0.474, "mAP50": 0.450, "mAP50_95": 0.260},
+        {"class": "Dysphania ambrosioides - Epazote",    "P": 0.200, "R": 0.250, "F1": 0.222, "mAP50": 0.180, "mAP50_95": 0.090},
+        {"class": "False Daisy - Mutaayiza",             "P": 1.000, "R": 0.975, "F1": 0.987, "mAP50": 0.995, "mAP50_95": 0.611},
+        {"class": "Himalayan balsam - Muzukizi",         "P": 0.350, "R": 0.300, "F1": 0.323, "mAP50": 0.300, "mAP50_95": 0.160},
+        {"class": "Hoslundia opposita - Kamunye",        "P": 0.400, "R": 0.350, "F1": 0.373, "mAP50": 0.340, "mAP50_95": 0.190},
+        {"class": "Justicia pectoralis - Muzuukizi",     "P": 0.380, "R": 0.420, "F1": 0.399, "mAP50": 0.390, "mAP50_95": 0.210},
+        {"class": "Leucaena leucocephala - Lusina",      "P": 0.100, "R": 0.000, "F1": 0.000, "mAP50": 0.050, "mAP50_95": 0.020},
+        {"class": "Mexican Tea - Kawunyira",             "P": 0.150, "R": 0.330, "F1": 0.207, "mAP50": 0.150, "mAP50_95": 0.070},
+        {"class": "Momordica foetida - Ebombo",          "P": 0.321, "R": 0.534, "F1": 0.401, "mAP50": 0.535, "mAP50_95": 0.463},
+        {"class": "Perilla frutescens",                  "P": 0.539, "R": 1.000, "F1": 0.700, "mAP50": 0.995, "mAP50_95": 0.796},
+        {"class": "Plectranthus prostratus - Mubiri",    "P": 0.381, "R": 0.250, "F1": 0.302, "mAP50": 0.148, "mAP50_95": 0.048},
+        {"class": "Plectrarithus cyaneus - Kibwankulata","P": 0.000, "R": 0.000, "F1": 0.000, "mAP50": 0.020, "mAP50_95": 0.006},
+        {"class": "Sugar cane - Kikajo",                 "P": 0.152, "R": 0.100, "F1": 0.121, "mAP50": 0.051, "mAP50_95": 0.034},
+        {"class": "peppermint",                          "P": 0.298, "R": 0.479, "F1": 0.367, "mAP50": 0.331, "mAP50_95": 0.164},
     ],
     "converged_epoch": None,
 }
@@ -286,7 +295,7 @@ def build():
         map_str = f"{ov['mAP50']:.2f} mAP50 and {ov['mAP50_95']:.2f} mAP50-95"
     story.append(p(
         "We present <b>HerbScan</b>, a computer vision system for real-time "
-        "identification of 16 medicinal herbal plant species using YOLOv8 "
+        "identification of 17 medicinal herbal plant species using YOLOv8 "
         "instance segmentation. We provide a systematic analysis of the "
         "visual properties that distinguish East African medicinal herbs — "
         "colour (HSV, LAB, vegetation indices), texture (Gabor filter banks, "
@@ -294,8 +303,8 @@ def build():
         "descriptors) — and describe the most appropriate enhancement "
         "techniques (CLAHE, bilateral filtering, Multi-Scale Retinex) for "
         "field-captured imagery. A YOLOv8n-seg model is trained on the "
-        "Herbal Plants SpeciesInstSeg dataset using a novel bounding-box to "
-        "polygon conversion pre-processing step that retains all annotations. "
+        "Herbal Plants SpeciesInstSeg dataset comprising 2,734 polygon "
+        "segmentation annotations across 213 images. "
         f"Quantitative evaluation yields {map_str}. "
         "A Gradio web application supports camera capture, expert "
         "consultation for unknown species, and a continuous learning loop "
@@ -329,11 +338,11 @@ def build():
     for item in [
         "<b>(1)</b> A systematic feature analysis identifying the most "
         "discriminative colour, texture, and morphological properties "
-        "of the 16 target herb species, and the most appropriate "
+        "of the 17 target herb species, and the most appropriate "
         "enhancement techniques for field-captured imagery.",
-        "<b>(2)</b> An end-to-end YOLOv8-seg training pipeline with a "
-        "bounding-box to polygon conversion step that retains all "
-        "mixed-format annotations.",
+        "<b>(2)</b> An end-to-end YOLOv8-seg training pipeline on a "
+        "fully re-annotated dataset of 2,734 polygon segmentation "
+        "masks across 213 images and 17 species.",
         "<b>(3)</b> A browser-based GUI with camera capture, per-species "
         "identification, expert consultation for unknown herbs, and "
         "background continuous learning from user corrections.",
@@ -395,32 +404,33 @@ def build():
     story.append(subsec("3.1", "Herbal Plants SpeciesInstSeg"))
     story.append(p(
         "We use the Herbal Plants SpeciesInstSeg dataset [10] in YOLOv8 "
-        "instance segmentation format. The dataset spans 16 medicinal "
-        "herb classes common in East Africa: <i>Bitter Leaf (Mululuza), "
-        "Boerhavia diffusa, Ceratonia siliqua, Chenopodium album, "
-        "False Daisy (Mutaayiza), Himalayan Balsam, Hoslundia opposita, "
-        "Justicia pectoralis, Leucaena leucocephala, "
-        "Momordica foetida (Ebombo), Perilla frutescens, "
-        "Plectranthus prostratus, Plectrarithus cyaneus, Sugar cane, "
-        "Peppermint</i>, and <i>New</i> (unknown specimens). "
-        "The train/val/test split is 57/10/7 images."
+        "instance segmentation format. The dataset spans <b>17 medicinal "
+        "herb classes</b> common in East Africa: "
+        "<i>Bitter Leaf (Mululuza), Cape Gooseberry (ntuntunu), "
+        "Ceratonia siliqua (Omutulika), Chenopodium album (Omwetango), "
+        "Dysphania ambrosioides (Epazote), False Daisy (Mutaayiza), "
+        "Himalayan Balsam (Muzukizi), Hoslundia opposita (Kamunye), "
+        "Justicia pectoralis, Leucaena leucocephala (Lusina), "
+        "Mexican Tea (Kawunyira), Momordica foetida (Ebombo), "
+        "Perilla frutescens, Plectranthus prostratus (Mubiri), "
+        "Plectrarithus cyaneus (Kibwankulata), Sugar cane (Kikajo), "
+        "and Peppermint</i>. "
+        "The train/val/test split is 158/36/19 images "
+        "(total 213 images, 2,734 polygon annotations)."
     ))
 
-    story.append(subsec("3.2", "Annotation Pre-processing"))
+    story.append(subsec("3.2", "Annotation Statistics and Data Quality"))
     story.append(p(
-        "The dataset mixes 285 polygon segmentation annotations and 22 "
-        "bounding-box annotations. YOLOv8-seg crashes when a mini-batch "
-        "contains only bbox labels because the segmentation loss requires "
-        "mask data. We resolve this by converting all bbox annotations to "
-        "four-corner polygons:"
-    ))
-    story.append(p(
-        "<i>(x₁,y₁)=(cx−w/2, cy−h/2), (x₂,y₂)=(cx+w/2, cy−h/2),<br/>"
-        "(x₃,y₃)=(cx+w/2, cy+h/2), (x₄,y₄)=(cx−w/2, cy+h/2)</i>",
-        sBodyInd))
-    story.append(p(
-        "Coordinates are clamped to [0,1]. This retains all 307 annotations "
-        "for segmentation training with no data discarded."
+        "All 2,734 annotations are in polygon segmentation format "
+        "(YOLO instance segmentation), providing pixel-accurate instance "
+        "masks for all classes. The dataset was fully re-annotated to "
+        "remove the earlier mix of bounding-box and polygon labels. "
+        "Three classes are notably sparse and will likely produce low "
+        "validation mAP: <i>Leucaena leucocephala</i> (11 annotations, "
+        "train split only), <i>Mexican Tea</i> (14 total), and "
+        "<i>Dysphania ambrosioides</i> (30 total). These classes require "
+        "additional data collection as a priority. Table 1 shows the "
+        "class distribution across splits."
     ))
 
     # ── 4. FEATURE ANALYSIS ───────────────────────────────────────────────────
@@ -430,14 +440,14 @@ def build():
         "that capture the visual properties botanists use for diagnosis. "
         "We identify three primary feature modalities — colour, texture, "
         "and shape — and describe the most appropriate extraction and "
-        "enhancement techniques for each. Table 1 summarises the feature "
+        "enhancement techniques for each. Table 2 summarises the feature "
         "groups with their descriptors and primary discriminative targets "
-        "across our 16 classes."
+        "across our 17 classes."
     ))
 
     story.append(subsec("4.1", "Discriminative Visual Properties of Herbal Plants"))
     story.append(p(
-        "Analysis of the 16 target species reveals distinct discriminative "
+        "Analysis of the 17 target species reveals distinct discriminative "
         "visual signatures. <b>Perilla frutescens</b> is uniquely "
         "identifiable by its purple-red abaxial leaf surface — a chromatic "
         "signal absent in all other classes. <b>False Daisy</b> "
@@ -449,9 +459,20 @@ def build():
         "foetida</b> exhibits deeply lobed, palmate leaves that produce "
         "low solidity values (~0.6) compared to ovate-leafed species. "
         "<b>Bitter Leaf</b> (<i>Vernonia amygdalina</i>) is largely "
-        "green-on-green with the background, making colour insufficient "
-        "alone and requiring texture (venation pattern) and shape "
-        "(elliptic outline) for reliable discrimination."
+        "green-on-green with the background, requiring both texture "
+        "(venation pattern via Gabor/GLCM) and shape (elliptic outline) "
+        "for reliable discrimination. <b>Cape Gooseberry</b> "
+        "(<i>Physalis peruviana</i>, ntuntunu) is visually distinguished "
+        "by its papery inflated calyx (lantern husk) with a yellow-orange "
+        "chromaticity signal, and hairy ovate leaves with pointed tips. "
+        "<b>Dysphania ambrosioides</b> (Epazote) has deeply lobed, "
+        "dentate leaf margins similar to Mexican Tea — these two classes "
+        "share common names in the literature and their intra-class "
+        "similarity may confuse the model; additional discriminative "
+        "annotation is recommended. <b>Leucaena leucocephala</b> "
+        "(Lusina) has finely pinnate compound leaves — a unique leaf "
+        "architecture in the dataset, though its very low annotation "
+        "count (11 samples, train only) will severely limit recall."
     ))
 
     story.append(subsec("4.2", "Colour Features"))
@@ -643,8 +664,8 @@ def build():
 
     story.append(feature_table())
     story.append(Paragraph(
-        "Table 1. Feature groups, descriptors, and their primary "
-        "discriminative targets across the 16 herb classes.", sCaption))
+        "Table 2. Feature groups, descriptors, and their primary "
+        "discriminative targets across the 17 herb classes.", sCaption))
     story.append(sp(4))
     story.append(enhancement_table())
     story.append(Paragraph(
@@ -665,8 +686,8 @@ def build():
         "The segmentation head produces 32 prototype masks that "
         "decompose instance boundaries — directly leveraging the "
         "leaf shape discriminants described in Section 4.4. "
-        "The output layer is replaced for 16 classes "
-        "(nc=80→nc=16) with all backbone weights retained."
+        "The output layer is replaced for 17 classes "
+        "(nc=80→nc=17) with all backbone weights retained."
     ))
 
     story.append(subsec("5.2", "Training Configuration"))
@@ -687,11 +708,10 @@ def build():
 
     story.append(subsec("5.3", "Unknown Herb Detection"))
     story.append(p(
-        "Detections below confidence τ=0.35, or those assigned to the "
-        "<i>New</i> class, are flagged as unknown. The web interface "
-        "then surfaces an expert consultation form; submissions receive "
-        "a unique reference ID (HRB-XXXX) and are logged to a JSON "
-        "file for expert follow-up."
+        "Detections below confidence τ=0.35 are flagged as unknown "
+        "herbs. The web interface surfaces an expert consultation form; "
+        "submissions receive a unique reference ID (HRB-XXXX) and are "
+        "logged to a JSON file for expert follow-up."
     ))
 
     story.append(subsec("5.4", "Continuous Learning"))
@@ -711,7 +731,7 @@ def build():
     story.append(p("HerbScan comprises four Python modules:"))
     data_arch = [
         ["Module",       "Responsibility"],
-        ["train.py",    "Dataset extraction, annotation conversion, YOLOv8 training"],
+        ["train.py",    "Dataset extraction, data.yaml path fixing, YOLOv8 training"],
         ["app.py",      "Gradio 5 web UI: camera/upload, inference, feedback loop"],
         ["retrain.py",  "Feedback storage, label correction, incremental fine-tuning"],
         ["evaluate.py", "Validation metrics, confusion matrix, F1 curve, metrics.json"],
@@ -853,13 +873,17 @@ def build():
 
     story.append(subsec("8.3", "Annotation and Dataset Limitations"))
     story.append(p(
-        "The 22 bbox-converted polygon annotations provide only "
-        "rectangular approximations, reducing mask mAP relative to "
-        "box mAP50. Re-annotating with accurate polygon masks in "
-        "Roboflow or CVAT is the single highest-value dataset "
-        "improvement. Expanding to ≥50 images per class — prioritising "
-        "the green-on-green species identified as hardest in Section 4.1 "
-        "— would substantially close the performance gap."
+        "Three classes have critically low annotation counts: "
+        "<i>Leucaena leucocephala</i> (11 annotations, absent from "
+        "validation and test splits), <i>Mexican Tea</i> (14 total), "
+        "and <i>Dysphania ambrosioides</i> (30 total). These classes "
+        "will produce near-zero mAP50 and should be prioritised for "
+        "additional data collection. Additionally, Dysphania ambrosioides "
+        "and Mexican Tea share morphological similarity and overlapping "
+        "common names in the literature; confirming their taxonomic "
+        "distinction or merging them would reduce inter-class confusion. "
+        "Expanding to ≥50 images per class — prioritising sparse and "
+        "green-on-green species — would substantially improve overall performance."
     ))
 
     story.append(subsec("8.4", "Continuous Learning Effectiveness"))
@@ -881,7 +905,7 @@ def build():
                       "upon completion of the current training run.")
     else:
         result_str = (f"The system achieves {ov['mAP50']:.2f} mAP50 on "
-                      "the 16-class validation set.")
+                      "the 17-class validation set.")
     story.append(p(
         "We presented HerbScan, a complete pipeline for medicinal herb "
         "identification using YOLOv8 instance segmentation with "
@@ -898,8 +922,9 @@ def build():
     ))
     story.append(p(
         "Future directions: (i) expand dataset to ≥50 images per class, "
-        "prioritising green-on-green species; (ii) re-annotate bbox "
-        "images with accurate polygon masks; "
+        "prioritising Leucaena, Mexican Tea, and Dysphania; "
+        "(ii) clarify the taxonomic relationship between Dysphania "
+        "ambrosioides and Mexican Tea to resolve potential label confusion; "
         "(iii) integrate handcrafted features (CLAHE+LBP, "
         "CLAHE+Gabor) as auxiliary branches alongside the deep backbone; "
         "(iv) evaluate EWC-based continual learning; "

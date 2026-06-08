@@ -1,6 +1,6 @@
 # HerbScan — Medicinal Herbal Plant Recognition
 
-A real-time medicinal herb identification system using **YOLOv8 instance segmentation**, served through a browser-based Gradio interface. The system identifies 16 East African medicinal herb species, handles unknown plants with an expert consultation pathway, and continuously improves via a background fine-tuning loop triggered by user corrections.
+A real-time medicinal herb identification system using **YOLOv8 instance segmentation**, served through a browser-based Gradio interface. The system identifies 17 East African medicinal herb species, handles unknown plants with an expert consultation pathway, and continuously improves via a background fine-tuning loop triggered by user corrections.
 
 **GitHub:** https://github.com/bertonag/HerbalSpiciesRecognition
 
@@ -18,26 +18,29 @@ A real-time medicinal herb identification system using **YOLOv8 instance segment
 
 ---
 
-## Herb Classes (16)
+## Herb Classes (17)
 
-| # | Species | Local Name |
-|---|---------|------------|
-| 0 | Bitter Leaf | Mululuza |
-| 1 | Boerhavia diffusa | Olweza |
-| 2 | Ceratonia siliqua | Omutulika |
-| 3 | Chenopodium album | Omwetango |
-| 4 | False Daisy | Mutaayiza |
-| 5 | Himalayan Balsam | Muzukizi |
-| 6 | Hoslundia opposita | Kamunye |
-| 7 | Justicia pectoralis | — |
-| 8 | Leucaena leucocephala | Lusina |
-| 9 | Momordica foetida | Ebombo |
-| 10 | Perilla frutescens | — |
-| 11 | Plectranthus prostratus | Mubiri |
-| 12 | Plectrarithus cyaneus | Kibwankulata |
-| 13 | Sugar cane | Kikajo |
-| 14 | Peppermint | — |
-| 15 | New | (unknown / unannotated) |
+| # | Species | Local Name | Annotations |
+|---|---------|------------|-------------|
+| 0 | Bitter Leaf | Mululuza | 383 |
+| 1 | Cape Gooseberry | ntuntunu | 256 |
+| 2 | Ceratonia siliqua | Omutulika | 109 |
+| 3 | Chenopodium album | Omwetango | 171 |
+| 4 | Dysphania ambrosioides | Epazote | 30 ⚠ |
+| 5 | False Daisy | Mutaayiza | 483 |
+| 6 | Himalayan Balsam | Muzukizi | 108 |
+| 7 | Hoslundia opposita | Kamunye | 95 |
+| 8 | Justicia pectoralis | — | 119 |
+| 9 | Leucaena leucocephala | Lusina | 11 ⚠ |
+| 10 | Mexican Tea | Kawunyira | 14 ⚠ |
+| 11 | Momordica foetida | Ebombo | 190 |
+| 12 | Perilla frutescens | — | 86 |
+| 13 | Plectranthus prostratus | Mubiri | 192 |
+| 14 | Plectrarithus cyaneus | Kibwankulata | 141 |
+| 15 | Sugar cane | Kikajo | 234 |
+| 16 | Peppermint | — | 112 |
+
+⚠ Sparse classes — fewer than 30 annotations. Priority for additional data collection.
 
 ---
 
