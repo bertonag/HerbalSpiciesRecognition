@@ -211,14 +211,14 @@ def build():
     add_text_box(sl,
         "GitHub: https://github.com/bertonag/HerbalSpiciesRecognition",
         0.6, 5.6, 12, 0.5, font_size=14, color=ACCENT)
-    add_text_box(sl, "Slide 1 / 12", 0.6, 6.9, 12, 0.4,
+    add_text_box(sl, "Slide 1 / 14", 0.6, 6.9, 12, 0.4,
                  font_size=11, color=GREEN_LIGHT, align=PP_ALIGN.RIGHT)
 
     # ── SLIDE 2 — MOTIVATION ─────────────────────────────────────────────────
     sl = prs.slides.add_slide(blank_layout)
     add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
     header_bar(sl, "Motivation", "Why does herbal plant recognition matter?")
-    footer_bar(sl, "2 / 12")
+    footer_bar(sl, "2 / 14")
 
     section_card(sl, 0.3, 1.4, 5.9, 2.5, "The Problem", [
         "60%+ of Uganda's population relies on herbal medicine",
@@ -255,7 +255,7 @@ def build():
     sl = prs.slides.add_slide(blank_layout)
     add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
     header_bar(sl, "Dataset", "Herbal Plants SpeciesInstSeg (Roboflow)")
-    footer_bar(sl, "3 / 12")
+    footer_bar(sl, "3 / 14")
 
     # Split stats
     for i, (n, label, bg) in enumerate([
@@ -296,7 +296,7 @@ def build():
     add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
     header_bar(sl, "Annotation Pre-processing",
                "Converting bounding boxes to polygons for YOLOv8-seg")
-    footer_bar(sl, "4 / 12")
+    footer_bar(sl, "4 / 14")
 
     add_text_box(sl, "The Challenge:", 0.3, 1.4, 12.5, 0.45,
                  font_size=16, bold=True, color=GREEN_DARK)
@@ -348,7 +348,7 @@ def build():
     sl = prs.slides.add_slide(blank_layout)
     add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
     header_bar(sl, "Model Architecture", "YOLOv8n Instance Segmentation")
-    footer_bar(sl, "5 / 12")
+    footer_bar(sl, "5 / 14")
 
     # Architecture blocks
     blocks = [
@@ -398,7 +398,7 @@ def build():
     sl = prs.slides.add_slide(blank_layout)
     add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
     header_bar(sl, "System Overview", "End-to-end pipeline")
-    footer_bar(sl, "6 / 12")
+    footer_bar(sl, "6 / 14")
 
     # Pipeline diagram
     pipeline = [
@@ -444,7 +444,7 @@ def build():
     sl = prs.slides.add_slide(blank_layout)
     add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
     header_bar(sl, "Web Interface", "Gradio 5.x – Browser-based GUI")
-    footer_bar(sl, "7 / 12")
+    footer_bar(sl, "7 / 14")
 
     panels = [
         ("📷 Input Panel",
@@ -480,108 +480,270 @@ def build():
             add_text_box(sl, f"• {item}", x+0.15, y+0.5+i*0.35, w-0.2, 0.35,
                          font_size=11, color=DARK_GREY)
 
-    # ── SLIDE 8 — FEATURE EXTRACTION ─────────────────────────────────────────
+    # ── SLIDE 8 — DISCRIMINATIVE VISUAL PROPERTIES ───────────────────────────
     sl = prs.slides.add_slide(blank_layout)
     add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
-    header_bar(sl, "Feature Extraction & Enhancement",
-               "Visual features exploited by the model")
-    footer_bar(sl, "8 / 12")
+    header_bar(sl, "Discriminative Visual Properties",
+               "What makes each herb visually unique?")
+    footer_bar(sl, "8 / 14")
 
-    features_list = [
-        ("🎨 Colour Features",
-         ["HSV colour histograms — discriminate green/purple/red tones",
-          "LAB colour space — perceptually uniform leaf colour",
-          "Vegetation indices (ExG, NDVI) — plant vs background",
-          "Per-channel statistics: mean, std, skewness"],
-         0.3, 1.4, 5.9, 3.2),
-        ("🔲 Texture Features",
-         ["Gabor filter banks — 6 orientations, 4 scales",
-          "Local Binary Patterns (LBP) — bark and leaf surface",
-          "Grey-Level Co-occurrence Matrix (GLCM)",
-          "Haralick energy, contrast, homogeneity"],
-         6.5, 1.4, 6.5, 3.2),
-        ("📐 Shape & Enhancement",
-         ["Leaf contour moments (Hu moments)",
-          "CLAHE — adaptive contrast for low-light images",
-          "Bilateral filtering — edge-preserving denoising"],
-         0.3, 4.8, 5.9, 2.2),
-        ("🧠 Deep Features",
-         ["CSP-Darknet backbone: hierarchical feature maps",
-          "PANet neck: multi-scale feature fusion (80/40/20)",
-          "Prototype masks: 32-channel segmentation basis"],
-         6.5, 4.8, 6.5, 2.2),
+    species_props = [
+        ("Perilla frutescens",    "🎨 Colour",   "Purple-red abaxial surface\n(H=270–320°, a*>0 in LAB)\nUnique in dataset"),
+        ("False Daisy",           "🔲 Texture",  "Deeply serrated margins\nDense appressed hairs\nHigh LBP transition rate"),
+        ("Sugar cane",            "📐 Shape",    "Aspect ratio ≈ 8:1\nParallel veins\nHighly elongated"),
+        ("Momordica foetida",     "📐 Shape",    "Palmate lobed leaf\nSolidity ≈ 0.6\nLow circularity"),
+        ("Bitter Leaf",           "🔲 Texture",  "Green-on-green camouflage\nDiscriminated by venation\nGLCM + Gabor needed"),
+        ("Peppermint",            "📐+🎨",       "Square stems + opposite leaves\nSilvery surface sheen\nDistinctive aspect ratio"),
     ]
-    for title, items, x, y, w, h in features_list:
-        add_rect(sl, x, y, w, 0.42, GREEN_MID)
-        add_text_box(sl, title, x+0.1, y+0.04, w-0.15, 0.35,
-                     font_size=13, bold=True, color=WHITE)
-        add_rect(sl, x, y+0.42, w, h-0.42, LIGHT_GREY)
-        for i, item in enumerate(items):
-            add_text_box(sl, f"• {item}", x+0.15, y+0.5+i*0.38, w-0.2, 0.38,
+    cols_per_row = 3
+    for idx, (species, feat_type, desc) in enumerate(species_props):
+        col = idx % cols_per_row
+        row = idx // cols_per_row
+        x = 0.25 + col * 4.35
+        y = 1.45 + row * 2.55
+        feat_bg = (GREEN_MID if "Colour" in feat_type
+                   else rgb(0x4A, 0x6A, 0x1A) if "Texture" in feat_type
+                   else ACCENT)
+        add_rect(sl, x, y, 4.1, 0.4, feat_bg)
+        add_text_box(sl, f"{feat_type}  —  {species}", x+0.1, y+0.04, 3.9, 0.34,
+                     font_size=11, bold=True, color=WHITE)
+        add_rect(sl, x, y+0.4, 4.1, 1.9, LIGHT_GREY)
+        for li, line in enumerate(desc.split("\n")):
+            add_text_box(sl, f"• {line}", x+0.15, y+0.52+li*0.42, 3.8, 0.4,
                          font_size=11, color=DARK_GREY)
 
-    # ── SLIDE 9 — RESULTS ─────────────────────────────────────────────────────
+    add_text_box(sl,
+        "Key insight: species with unique colour OR extreme shape are learnable from few images. "
+        "Green-on-green species need texture features AND more training data.",
+        0.3, 6.65, 12.7, 0.42, font_size=11, italic=True,
+        color=GREEN_DARK, align=PP_ALIGN.CENTER)
+
+    # ── SLIDE 9 — COLOUR & TEXTURE FEATURES ──────────────────────────────────
+    sl = prs.slides.add_slide(blank_layout)
+    add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
+    header_bar(sl, "Feature Extraction: Colour & Texture",
+               "What to extract — and why it matters for herbs")
+    footer_bar(sl, "9 / 14")
+
+    # Colour column
+    add_rect(sl, 0.25, 1.35, 6.1, 0.4, GREEN_DARK)
+    add_text_box(sl, "🎨  COLOUR FEATURES", 0.35, 1.38, 5.9, 0.35,
+                 font_size=14, bold=True, color=WHITE)
+    colour_items = [
+        ("HSV Histograms",
+         "Hue channel: Perilla = H≈300° (purple), all others H≈90–150° (green)\n"
+         "32 bins/channel → 96-D descriptor. Saturation detects dried vs. fresh."),
+        ("LAB Colour Space",
+         "a* axis (red–green): large positive value uniquely for Perilla.\n"
+         "L* captures canopy-shade lighting variation. Perceptually uniform."),
+        ("Vegetation Indices",
+         "ExG = 2G−R−B  segments plant from background.\n"
+         "VARI = (G−R)/(G+R−B)  robust to illumination variation.\n"
+         "ExR = 1.4R−G  amplifies anthocyanin red in Perilla."),
+        ("Chromaticity r,g",
+         "r=R/(R+G+B), g=G/(R+G+B) — illumination-invariant ratios.\n"
+         "Stable across exposure and white-balance variation in field photos."),
+    ]
+    y0 = 1.85
+    for title, body in colour_items:
+        add_rect(sl, 0.25, y0, 6.1, 0.3, rgb(0xE8, 0xF5, 0xE9))
+        add_text_box(sl, title, 0.35, y0+0.02, 5.9, 0.27,
+                     font_size=11, bold=True, color=GREEN_DARK)
+        y0 += 0.3
+        for line in body.split("\n"):
+            add_text_box(sl, f"  {line}", 0.35, y0, 5.9, 0.28,
+                         font_size=10, color=DARK_GREY)
+            y0 += 0.28
+        y0 += 0.04
+
+    # Texture column
+    add_rect(sl, 6.98, 1.35, 6.1, 0.4, rgb(0x4A, 0x6A, 0x1A))
+    add_text_box(sl, "🔲  TEXTURE FEATURES", 7.08, 1.38, 5.9, 0.35,
+                 font_size=14, bold=True, color=WHITE)
+    texture_items = [
+        ("Gabor Filter Banks  (6θ × 4σ)",
+         "Captures venation, surface hairiness, and margin edge patterns.\n"
+         "Multi-scale (4 scales) robust to varying camera distances.\n"
+         "Response: mean + variance per filter → 48-D descriptor."),
+        ("Local Binary Patterns (LBP)",
+         "Rotation-invariant micro-texture. Multi-radius (r=1,2,3).\n"
+         "Smooth waxy (Perilla) → few transitions.\n"
+         "Hairy surface (False Daisy) → many transitions."),
+        ("GLCM — Haralick Features",
+         "5 key statistics: Energy, Contrast, Correlation,\n"
+         "Homogeneity, Entropy. 4 orientations → rotation invariant.\n"
+         "Contrast high for deeply veined leaves; Energy high for smooth."),
+    ]
+    y0 = 1.85
+    for title, body in texture_items:
+        add_rect(sl, 6.98, y0, 6.1, 0.3, rgb(0xF1, 0xF8, 0xE9))
+        add_text_box(sl, title, 7.08, y0+0.02, 5.9, 0.27,
+                     font_size=11, bold=True, color=rgb(0x2E, 0x4A, 0x1A))
+        y0 += 0.3
+        for line in body.split("\n"):
+            add_text_box(sl, f"  {line}", 7.08, y0, 5.9, 0.28,
+                         font_size=10, color=DARK_GREY)
+            y0 += 0.28
+        y0 += 0.06
+
+    # ── SLIDE 10 — SHAPE FEATURES & ENHANCEMENT TECHNIQUES ───────────────────
+    sl = prs.slides.add_slide(blank_layout)
+    add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
+    header_bar(sl, "Shape Features & Enhancement Techniques",
+               "Morphology descriptors + preprocessing pipeline for field images")
+    footer_bar(sl, "10 / 14")
+
+    # Shape column
+    add_rect(sl, 0.25, 1.35, 5.8, 0.4, ACCENT)
+    add_text_box(sl, "📐  SHAPE FEATURES", 0.35, 1.38, 5.6, 0.35,
+                 font_size=14, bold=True, color=WHITE)
+    shape_rows = [
+        ("Hu Moments  (7 invariants)",
+         "Rotation, scale & translation invariant.\n"
+         "Elongated (Sugar cane 8:1) vs compact (Bitter Leaf 1.5:1)."),
+        ("Fourier Descriptors",
+         "DFT of leaf boundary. High-freq. energy = serrations.\n"
+         "False Daisy's deep serrations absent in smooth-margined herbs."),
+        ("Geometric Properties",
+         "Solidity: Momordica lobed ≈0.6 vs ovate ≈0.95\n"
+         "Aspect ratio, circularity, eccentricity — fast & interpretable."),
+        ("Deep Shape (YOLOv8 masks)",
+         "32 prototype masks decompose instance boundary directly.\n"
+         "Implicitly learns shape+texture jointly from training data."),
+    ]
+    y0 = 1.85
+    for title, body in shape_rows:
+        add_rect(sl, 0.25, y0, 5.8, 0.3, rgb(0xFF, 0xF8, 0xE1))
+        add_text_box(sl, title, 0.35, y0+0.02, 5.6, 0.27,
+                     font_size=11, bold=True, color=rgb(0x7A, 0x50, 0x00))
+        y0 += 0.3
+        for line in body.split("\n"):
+            add_text_box(sl, f"  {line}", 0.35, y0, 5.6, 0.28,
+                         font_size=10, color=DARK_GREY)
+            y0 += 0.28
+        y0 += 0.06
+
+    # Enhancement column
+    add_rect(sl, 6.8, 1.35, 6.28, 0.4, GREEN_MID)
+    add_text_box(sl, "✨  ENHANCEMENT PIPELINE", 6.9, 1.38, 6.1, 0.35,
+                 font_size=14, bold=True, color=WHITE)
+
+    enhancements = [
+        ("1. CLAHE",         "Tile-wise histogram equalisation (8×8 grid, clip=2.0).\n"
+                             "Applied to L* channel in LAB. ★ Highest priority."),
+        ("2. Bilateral Filter", "Edge-preserving smooth (σ_space=5, σ_color=30).\n"
+                             "Keeps veins & serrations; removes sensor noise."),
+        ("3. Multi-Scale Retinex", "3 scales σ={15,80,250}: removes illumination cast.\n"
+                             "Critical for forest canopy vs direct sun variation."),
+        ("4. Gamma Correction",  "I^(1/0.45) — recovers shadow detail.\n"
+                             "Lightweight Retinex alternative for mobile devices."),
+        ("5. Unsharp Masking",  "I + 0.5(I − blur). Sharpens venation & serrations.\n"
+                             "Apply after bilateral, before LBP/Gabor extraction."),
+    ]
+    y0 = 1.85
+    for title, body in enhancements:
+        add_rect(sl, 6.8, y0, 6.28, 0.3, rgb(0xE8, 0xF5, 0xE9))
+        add_text_box(sl, title, 6.9, y0+0.02, 6.1, 0.27,
+                     font_size=11, bold=True, color=GREEN_DARK)
+        y0 += 0.3
+        for line in body.split("\n"):
+            add_text_box(sl, f"  {line}", 6.9, y0, 6.1, 0.28,
+                         font_size=10, color=DARK_GREY)
+            y0 += 0.28
+        y0 += 0.06
+
+    add_text_box(sl,
+        "Recommended order:  Raw image  →  CLAHE  →  Bilateral  →  Retinex  →  Unsharp  →  Feature extraction",
+        0.25, 6.85, 12.83, 0.38,
+        font_size=11, bold=True, color=WHITE,
+        align=PP_ALIGN.CENTER)
+    add_rect(sl, 0.25, 6.82, 12.83, 0.42, GREEN_DARK)
+    add_text_box(sl,
+        "Recommended order:  Raw image  →  CLAHE  →  Bilateral  →  Retinex  →  Unsharp  →  Feature extraction",
+        0.3, 6.85, 12.73, 0.38,
+        font_size=11, bold=True, color=WHITE,
+        align=PP_ALIGN.CENTER)
+
+    # ── SLIDE 11 — RESULTS ────────────────────────────────────────────────────
+    # (was slide 9 — number updated)
+    results_pending = not METRICS_JSON.exists()
     sl = prs.slides.add_slide(blank_layout)
     add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
     header_bar(sl, "Experimental Results", "Validation set performance")
-    footer_bar(sl, "9 / 12")
+    footer_bar(sl, "11 / 14")
 
-    # Top metrics — dynamic
-    mets = [
-        (f"{ov['mAP50']:.2f}",    "mAP50\n(Box)",    GREEN_DARK),
-        (f"{ov['mAP50_95']:.2f}", "mAP50-95\n(Box)", GREEN_MID),
-        (f"{ov['precision']:.2f}","Precision",        GREEN_DARK),
-        (f"{ov['recall']:.2f}",   "Recall",           GREEN_MID),
-        (f"{ov['F1']:.2f}",       "F1 Score",         rgb(0x33, 0x69, 0x1E)),
-    ]
-    for i, (val, label, bg) in enumerate(mets):
-        x = 0.3 + i * 2.55
-        metric_box(sl, x, 1.4, 2.3, 1.5, val, label, bg)
+    if results_pending:
+        add_rect(sl, 1.5, 2.0, 10.33, 3.5, rgb(0xFF, 0xF8, 0xE1))
+        add_rect(sl, 1.5, 2.0, 10.33, 0.6, ACCENT)
+        add_text_box(sl, "Training In Progress — Results Pending",
+                     1.6, 2.07, 10.13, 0.48,
+                     font_size=18, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
+        add_text_box(sl,
+            "Once training completes, run:\n\n"
+            "    python evaluate.py\n"
+            "    python generate_presentation.py\n\n"
+            "This slide will auto-populate with live metrics and per-class table.",
+            1.7, 2.75, 9.93, 2.6,
+            font_size=14, color=DARK_GREY, align=PP_ALIGN.LEFT)
+        add_text_box(sl,
+            "Preliminary estimate: mAP50 ~ 0.47  |  Best: False Daisy (0.995)  |  "
+            "Challenging: Sugar cane (0.051)",
+            0.5, 6.0, 12.33, 0.55,
+            font_size=12, italic=True, color=GREEN_DARK, align=PP_ALIGN.CENTER)
+    else:
+        mets = [
+            (f"{ov['mAP50']:.2f}",    "mAP50\n(Box)",    GREEN_DARK),
+            (f"{ov['mAP50_95']:.2f}", "mAP50-95\n(Box)", GREEN_MID),
+            (f"{ov['precision']:.2f}","Precision",        GREEN_DARK),
+            (f"{ov['recall']:.2f}",   "Recall",           GREEN_MID),
+            (f"{ov['F1']:.2f}",       "F1 Score",         rgb(0x33, 0x69, 0x1E)),
+        ]
+        for i, (val, label, bg) in enumerate(mets):
+            x = 0.3 + i * 2.55
+            metric_box(sl, x, 1.4, 2.3, 1.5, val, label, bg)
 
-    # Per-class table
-    add_text_box(sl, "Per-Class Performance (Validation Set):",
-                 0.3, 3.1, 12.5, 0.42,
-                 font_size=14, bold=True, color=GREEN_DARK)
+        add_text_box(sl, "Per-Class Performance (Validation Set):",
+                     0.3, 3.1, 12.5, 0.42,
+                     font_size=14, bold=True, color=GREEN_DARK)
 
-    headers = ["Class", "Precision", "Recall", "F1", "mAP50"]
-    # dynamic rows: top 7 by mAP50 + mean row
-    top_cls = sorted(per_class, key=lambda c: c["mAP50"], reverse=True)[:7]
-    mp_   = sum(c["P"]     for c in per_class) / max(len(per_class), 1)
-    mr_   = sum(c["R"]     for c in per_class) / max(len(per_class), 1)
-    mf1_  = sum(c["F1"]    for c in per_class) / max(len(per_class), 1)
-    map_  = sum(c["mAP50"] for c in per_class) / max(len(per_class), 1)
-    rows = [
-        (c["class"][:22], f"{c['P']:.2f}", f"{c['R']:.3f}", f"{c['F1']:.3f}", f"{c['mAP50']:.3f}")
-        for c in top_cls
-    ] + [(f"Mean ({len(per_class)} cls)", f"{mp_:.2f}", f"{mr_:.3f}", f"{mf1_:.3f}", f"{map_:.3f}")]
+        headers = ["Class", "Precision", "Recall", "F1", "mAP50"]
+        top_cls = sorted(per_class, key=lambda c: c["mAP50"], reverse=True)[:7]
+        mp_   = sum(c["P"]     for c in per_class) / max(len(per_class), 1)
+        mr_   = sum(c["R"]     for c in per_class) / max(len(per_class), 1)
+        mf1_  = sum(c["F1"]    for c in per_class) / max(len(per_class), 1)
+        map_  = sum(c["mAP50"] for c in per_class) / max(len(per_class), 1)
+        rows = [
+            (c["class"][:22], f"{c['P']:.2f}", f"{c['R']:.3f}", f"{c['F1']:.3f}", f"{c['mAP50']:.3f}")
+            for c in top_cls
+        ] + [(f"Mean ({len(per_class)} cls)", f"{mp_:.2f}", f"{mr_:.3f}", f"{mf1_:.3f}", f"{map_:.3f}")]
 
-    col_xs = [0.3, 4.8, 6.8, 8.8, 10.8]
-    col_ws = [4.3, 1.9, 1.9, 1.9, 2.3]
+        col_xs = [0.3, 4.8, 6.8, 8.8, 10.8]
+        col_ws = [4.3, 1.9, 1.9, 1.9, 2.3]
 
-    y_h = 3.6
-    for i, hdr in enumerate(headers):
-        add_rect(sl, col_xs[i], y_h, col_ws[i], 0.38, GREEN_DARK)
-        add_text_box(sl, hdr, col_xs[i]+0.05, y_h+0.04, col_ws[i]-0.05, 0.33,
-                     font_size=12, bold=True, color=WHITE)
+        y_h = 3.6
+        for i, hdr in enumerate(headers):
+            add_rect(sl, col_xs[i], y_h, col_ws[i], 0.38, GREEN_DARK)
+            add_text_box(sl, hdr, col_xs[i]+0.05, y_h+0.04, col_ws[i]-0.05, 0.33,
+                         font_size=12, bold=True, color=WHITE)
 
-    for row_i, row in enumerate(rows):
-        y_r = 3.98 + row_i * 0.34
-        bg = LIGHT_GREY if row_i % 2 == 0 else WHITE
-        if row_i == len(rows) - 1:
-            bg = rgb(0xD7, 0xEB, 0xD7)
-        for col_i, val in enumerate(row):
-            add_rect(sl, col_xs[col_i], y_r, col_ws[col_i], 0.34, bg)
-            add_text_box(sl, val,
-                         col_xs[col_i]+0.05, y_r+0.03,
-                         col_ws[col_i]-0.05, 0.30,
-                         font_size=11, color=DARK_GREY,
-                         align=PP_ALIGN.LEFT if col_i == 0 else PP_ALIGN.CENTER)
+        for row_i, row in enumerate(rows):
+            y_r = 3.98 + row_i * 0.34
+            bg = LIGHT_GREY if row_i % 2 == 0 else WHITE
+            if row_i == len(rows) - 1:
+                bg = rgb(0xD7, 0xEB, 0xD7)
+            for col_i, val in enumerate(row):
+                add_rect(sl, col_xs[col_i], y_r, col_ws[col_i], 0.34, bg)
+                add_text_box(sl, val,
+                             col_xs[col_i]+0.05, y_r+0.03,
+                             col_ws[col_i]-0.05, 0.30,
+                             font_size=11, color=DARK_GREY,
+                             align=PP_ALIGN.LEFT if col_i == 0 else PP_ALIGN.CENTER)
 
-    # ── SLIDE 10 — CLASS HIGHLIGHTS ────────────────────────────────────────────
+    # ── SLIDE 12 — CLASS HIGHLIGHTS ───────────────────────────────────────────
     sl = prs.slides.add_slide(blank_layout)
     add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
     header_bar(sl, "Class Highlights", "Best and worst performing species")
-    footer_bar(sl, "10 / 12")
+    footer_bar(sl, "12 / 14")
 
     add_rect(sl, 0.3, 1.4, 5.9, 0.42, GREEN_MID)
     add_text_box(sl, "✅ Best Performing Classes", 0.4, 1.43, 5.8, 0.35,
@@ -632,7 +794,7 @@ def build():
     add_rect(sl, 0, 0, 13.33, 7.5, WHITE)
     header_bar(sl, "Continuous Learning",
                "Auto-triggered incremental fine-tuning")
-    footer_bar(sl, "11 / 12")
+    footer_bar(sl, "13 / 14")
 
     # Flow diagram
     steps = [
@@ -692,11 +854,17 @@ def build():
     add_text_box(sl, "Conclusions", 0.5, 0.1, 12.0, 0.8,
                  font_size=34, bold=True, color=WHITE)
 
+    if results_pending:
+        conc1 = "HerbScan: feature-aware YOLOv8n-seg for 16 East African medicinal herbs (results pending)"
+        conc2 = "Colour (HSV/LAB/VegIdx), texture (Gabor/LBP/GLCM) and shape (Hu/Fourier) features guide recognition"
+    else:
+        conc1 = f"HerbScan achieves {ov['mAP50']:.2f} mAP50 on a 16-class herbal dataset"
+        conc2 = (f"{best_cls['class']} & {second_best['class']} reach top accuracy "
+                 f"(mAP50 {best_cls['mAP50']:.3f} & {second_best['mAP50']:.3f})")
     concs = [
-        f"HerbScan achieves {ov['mAP50']:.2f} mAP50 on a 16-class herbal dataset",
-        f"{best_cls['class']} & {second_best['class']} reach top accuracy "
-        f"(mAP50 {best_cls['mAP50']:.3f} & {second_best['mAP50']:.3f})",
-        "Bbox→polygon conversion retains all annotations — no data discarded",
+        conc1,
+        conc2,
+        "Bbox→polygon conversion retains all 307 annotations — no data discarded",
         "Gradio 5 web interface supports camera capture, expert escalation, and feedback correction",
         "Background fine-tuning with low lr prevents catastrophic forgetting",
         "Deployed as open-source — all code available on GitHub",
@@ -721,7 +889,7 @@ def build():
     add_text_box(sl, "Gilbert Nyakana  ·  Makerere University  ·  2026",
                  0.5, 6.3, 12.3, 0.4, font_size=13, color=GREEN_LIGHT,
                  align=PP_ALIGN.CENTER)
-    add_text_box(sl, "12 / 12", 0.5, 6.9, 12.3, 0.4,
+    add_text_box(sl, "14 / 14", 0.5, 6.9, 12.3, 0.4,
                  font_size=11, color=ACCENT, align=PP_ALIGN.RIGHT)
 
     prs.save(str(OUT))
