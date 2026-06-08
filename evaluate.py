@@ -239,7 +239,66 @@ def evaluate(split: str = "val", save_samples: bool = False):
     if save_samples:
         save_prediction_samples(model, split, save_dir)
 
+    _save_metrics_json(metrics, class_names, save_dir)
+
     return metrics
+
+
+def _save_metrics_json(metrics, class_names: list[str], save_dir: Path):
+    """Write per-class and overall metrics to runs/train/metrics.json."""
+    import json
+
+    box = metrics.box
+    mp  = float(box.mp)
+    mr  = float(box.mr)
+    mf1 = 2 * mp * mr / (mp + mr + 1e-9)
+
+    per_class = []
+    for i, cls_idx in enumerate(box.ap_class_index):
+        p   = float(box.p[i])
+        r   = float(box.r[i])
+        f1  = 2 * p * r / (p + r + 1e-9)
+        per_class.append({
+            "class":    class_names[cls_idx] if cls_idx < len(class_names) else f"cls{cls_idx}",
+            "cls_idx":  int(cls_idx),
+            "P":        round(p,   3),
+            "R":        round(r,   3),
+            "F1":       round(f1,  3),
+            "mAP50":    round(float(box.ap50[i]), 3),
+            "mAP50_95": round(float(box.ap[i]),   3),
+        })
+
+    # convergence epoch from results.csv
+    results_csv = save_dir / "results.csv"
+    converged_epoch = None
+    if results_csv.exists():
+        import csv
+        with open(results_csv) as f:
+            rows = list(csv.DictReader(f))
+        if rows:
+            converged_epoch = int(rows[-1]["epoch"])
+
+    mask = metrics.seg if hasattr(metrics, "seg") else None
+
+    data = {
+        "overall": {
+            "mAP50":         round(float(box.map50), 4),
+            "mAP50_95":      round(float(box.map),   4),
+            "precision":     round(mp,  4),
+            "recall":        round(mr,  4),
+            "F1":            round(mf1, 4),
+            "mAP50_mask":    round(float(mask.map50), 4) if mask else None,
+            "mAP50_95_mask": round(float(mask.map),   4) if mask else None,
+        },
+        "per_class":      per_class,
+        "class_names":    class_names,
+        "converged_epoch": converged_epoch,
+    }
+
+    out = save_dir / "metrics.json"
+    with open(out, "w") as f:
+        json.dump(data, f, indent=2)
+    print(f"[INFO] Metrics saved: {out}")
 
 
 if __name__ == "__main__":
