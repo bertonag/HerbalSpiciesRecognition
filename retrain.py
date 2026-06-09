@@ -269,6 +269,55 @@ def retrain_with_feedback(epochs: int = 40, device: str = "cpu") -> bool:
     return True
 
 
+# ── expert-label feedback ─────────────────────────────────────────────────────
+
+def save_expert_label_as_feedback(image_path: str, cls_idx: int, ref: str) -> str:
+    """
+    Save an expert-labelled image as a feedback sample for retraining.
+
+    The expert identified the species from the whole image, so we use a
+    full-image rectangle as the polygon annotation (a reasonable proxy
+    when no instance-level boxes are available).
+
+    Returns the feedback reference ID string, e.g. "FB-0012".
+    """
+    import cv2
+    _ensure_dirs()
+
+    img = cv2.imread(image_path)
+    if img is None:
+        raise ValueError(f"Cannot read expert image: {image_path}")
+
+    uid      = uuid.uuid4().hex[:10]
+    img_name = f"expert_{uid}.jpg"
+    lbl_name = f"expert_{uid}.txt"
+
+    cv2.imwrite(str(FEEDBACK_DIR / "images" / img_name), img)
+
+    # Full-image polygon: four corners normalised to [0,1]
+    poly = "0.000000 0.000000 1.000000 0.000000 1.000000 1.000000 0.000000 1.000000"
+    (FEEDBACK_DIR / "labels" / lbl_name).write_text(
+        f"{cls_idx} {poly}\n", encoding="utf-8"
+    )
+
+    log = load_feedback_log()
+    ref_id = f"FB-{len(log) + 1:04d}"
+    class_names = load_class_names()
+    log.append({
+        "ref_id":        ref_id,
+        "timestamp":     datetime.now().isoformat(),
+        "image_file":    img_name,
+        "label_file":    lbl_name,
+        "source":        f"expert:{ref}",
+        "correct_class": class_names[cls_idx] if cls_idx < len(class_names) else str(cls_idx),
+        "merged":        False,
+    })
+    save_feedback_log(log)
+    print(f"[FEEDBACK] Expert label saved {ref_id}: class {cls_idx} "
+          f"({class_names[cls_idx] if cls_idx < len(class_names) else '?'}) from {ref}")
+    return ref_id
+
+
 # ── main ──────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":

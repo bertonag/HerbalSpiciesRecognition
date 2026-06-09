@@ -48,6 +48,7 @@ BASE_DIR = Path(__file__).parent
 MODEL_PATH          = BASE_DIR / "runs" / "train" / "weights" / "best.pt"
 YAML_PATH           = BASE_DIR / "dataset" / "data.yaml"
 EXPERT_QUERIES_FILE = BASE_DIR / "expert_queries.json"
+EXPERT_IMAGES_DIR   = BASE_DIR / "expert_images"
 
 CONFIDENCE_THRESHOLD = 0.35
 UNKNOWN_CLASS_NAME   = "New"
@@ -338,28 +339,164 @@ def trigger_retrain(device: str):
         yield "⚠️ Fine-tuning did not complete — check the terminal for errors."
 
 
-def submit_expert_query(description: str, location: str, contact: str) -> str:
+def submit_expert_query(state, description: str, location: str, contact: str) -> str:
     if not description.strip():
         return "⚠️ Please describe the plant before submitting."
-    queries  = []
+    queries = []
     if EXPERT_QUERIES_FILE.exists():
         with open(EXPERT_QUERIES_FILE) as f:
             queries = json.load(f)
     qid = len(queries) + 1
+    ref = f"HRB-{qid:04d}"
+
+    # Save image alongside the query so the expert can view it
+    image_path = None
+    if state and state.get("image") is not None:
+        import cv2
+        EXPERT_IMAGES_DIR.mkdir(exist_ok=True)
+        img_file = EXPERT_IMAGES_DIR / f"{ref}.jpg"
+        cv2.imwrite(str(img_file), state["image"][..., ::-1])   # RGB→BGR
+        image_path = str(img_file)
+
     queries.append({
-        "id": qid, "timestamp": datetime.now().isoformat(),
+        "id":          qid,
+        "ref":         ref,
+        "timestamp":   datetime.now().isoformat(),
         "description": description.strip(),
-        "location": location.strip() or "Not provided",
-        "contact":  contact.strip()  or "Not provided",
-        "status": "pending_expert_review",
+        "location":    location.strip() or "Not provided",
+        "contact":     contact.strip()  or "Not provided",
+        "image_path":  image_path,
+        "status":      "pending",
+        "expert_label":  None,
+        "expert_notes":  None,
+        "reviewed_at":   None,
     })
     with open(EXPERT_QUERIES_FILE, "w") as f:
         json.dump(queries, f, indent=2)
     return (
-        f"### ✅ Query submitted — `HRB-{qid:04d}`\n\n"
+        f"### ✅ Query submitted — `{ref}`\n\n"
         "An expert botanist will review your submission.  \n"
         "The plant has been logged as **UNKNOWN** pending identification."
     )
+
+
+# ── expert review helpers ─────────────────────────────────────────────────────
+
+def _load_queries() -> list[dict]:
+    if EXPERT_QUERIES_FILE.exists():
+        with open(EXPERT_QUERIES_FILE) as f:
+            return json.load(f)
+    return []
+
+
+def _save_queries(queries: list[dict]):
+    with open(EXPERT_QUERIES_FILE, "w") as f:
+        json.dump(queries, f, indent=2)
+
+
+def get_pending_choices() -> list[str]:
+    """Return dropdown choices for pending queries."""
+    return [
+        f"{q['ref']} — {q['description'][:60]}{'…' if len(q['description']) > 60 else ''}"
+        for q in _load_queries()
+        if q.get("status") == "pending"
+    ]
+
+
+def load_query_for_review(choice: str):
+    """Given a dropdown choice string, return (image_np_or_None, info_markdown)."""
+    import gradio as gr
+    if not choice:
+        return None, "*Select a query above.*"
+
+    ref = choice.split(" — ")[0].strip()
+    queries = _load_queries()
+    q = next((x for x in queries if x.get("ref") == ref), None)
+    if q is None:
+        return None, "⚠️ Query not found."
+
+    info = (
+        f"**Ref:** `{q['ref']}`  \n"
+        f"**Submitted:** {q['timestamp'][:19].replace('T', ' ')}  \n"
+        f"**Description:** {q['description']}  \n"
+        f"**Location:** {q['location']}  \n"
+        f"**Contact:** {q['contact']}  \n"
+        f"**Status:** {q['status']}"
+    )
+
+    img_np = None
+    if q.get("image_path") and Path(q["image_path"]).exists():
+        import cv2
+        bgr = cv2.imread(q["image_path"])
+        if bgr is not None:
+            img_np = bgr[..., ::-1]   # BGR→RGB for Gradio
+
+    return img_np, info
+
+
+def expert_label_query(choice: str, label: str, new_species: str, notes: str) -> str:
+    """Save expert label, optionally add to retrain pipeline."""
+    if not choice:
+        return "⚠️ No query selected."
+    if not label:
+        return "⚠️ Please select a label."
+
+    ref = choice.split(" — ")[0].strip()
+    queries = _load_queries()
+    q = next((x for x in queries if x.get("ref") == ref), None)
+    if q is None:
+        return "⚠️ Query not found."
+
+    final_label = new_species.strip() if label == "New / Unknown Species" else label
+    if not final_label:
+        return "⚠️ Please enter a species name for 'New / Unknown Species'."
+
+    q["status"]       = "labelled"
+    q["expert_label"] = final_label
+    q["expert_notes"] = notes.strip() or None
+    q["reviewed_at"]  = datetime.now().isoformat()
+    _save_queries(queries)
+
+    # Feed into retrain pipeline when it's a known class
+    retrain_note = ""
+    if label != "New / Unknown Species" and label in CLASS_NAMES:
+        cls_idx = CLASS_NAMES.index(label)
+        img_path = q.get("image_path")
+        if img_path and Path(img_path).exists():
+            try:
+                from retrain import save_expert_label_as_feedback
+                fb_ref = save_expert_label_as_feedback(img_path, cls_idx, ref)
+                retrain_note = (
+                    f"\n\n🔄 Added to retraining queue as `{fb_ref}`. "
+                    "Use **Force Retrain** in the main tab to update the model."
+                )
+            except Exception as exc:
+                retrain_note = f"\n\n⚠️ Could not save to retrain queue: {exc}"
+        else:
+            retrain_note = "\n\n⚠️ No image was saved with this query — not added to retrain queue."
+
+    return (
+        f"### ✅ Query `{ref}` labelled\n\n"
+        f"**Label assigned:** {final_label}  \n"
+        f"**Notes:** {notes or '—'}"
+        + retrain_note
+    )
+
+
+def expert_reject_query(choice: str, notes: str) -> str:
+    """Mark a query as unresolvable."""
+    if not choice:
+        return "⚠️ No query selected."
+    ref = choice.split(" — ")[0].strip()
+    queries = _load_queries()
+    q = next((x for x in queries if x.get("ref") == ref), None)
+    if q is None:
+        return "⚠️ Query not found."
+    q["status"]      = "rejected"
+    q["expert_notes"] = notes.strip() or None
+    q["reviewed_at"] = datetime.now().isoformat()
+    _save_queries(queries)
+    return f"### ❌ Query `{ref}` marked as unresolvable."
 
 
 # ── Gradio UI ─────────────────────────────────────────────────────────────────
@@ -372,6 +509,7 @@ def build_ui():
     stats = get_feedback_stats()
 
     herb_list = ", ".join(n for n in CLASS_NAMES if n != UNKNOWN_CLASS_NAME)
+    expert_label_choices = [n for n in CLASS_NAMES if n != UNKNOWN_CLASS_NAME] + ["New / Unknown Species"]
 
     with gr.Blocks(
         title="Herbal Plant Recognition",
@@ -395,107 +533,164 @@ def build_ui():
         if model_err:
             gr.Markdown(f"> ⚠️ {model_err}")
 
-        # ── detection row ─────────────────────────────────────────────────────
-        with gr.Row(equal_height=True):
-            with gr.Column(scale=1):
-                gr.Markdown("### 📷 Input Image")
-                image_in = gr.Image(
-                    label="Take a photo or upload",
-                    sources=["webcam", "upload"],
-                    type="numpy", height=380,
-                )
-                detect_btn = gr.Button("🔍  Identify Herb", variant="primary", size="lg")
+        with gr.Tabs():
+            # ══════════════════════════════════════════════════════════════════
+            # Tab 1 — Detection
+            # ══════════════════════════════════════════════════════════════════
+            with gr.Tab("🔍 Identify Herb"):
 
-            with gr.Column(scale=1):
-                gr.Markdown("### 🌱 Detection Result")
-                image_out = gr.Image(
-                    label="Annotated image", type="numpy",
-                    height=300, interactive=False,
-                )
-                result_md = gr.Markdown("*Results will appear here after detection.*")
+                # ── detection row ─────────────────────────────────────────────
+                with gr.Row(equal_height=True):
+                    with gr.Column(scale=1):
+                        gr.Markdown("### 📷 Input Image")
+                        image_in = gr.Image(
+                            label="Take a photo or upload",
+                            sources=["webcam", "upload"],
+                            type="numpy", height=380,
+                        )
+                        detect_btn = gr.Button("🔍  Identify Herb", variant="primary", size="lg")
 
-        # ── hidden state ──────────────────────────────────────────────────────
-        detection_state = gr.State(value=None)
+                    with gr.Column(scale=1):
+                        gr.Markdown("### 🌱 Detection Result")
+                        image_out = gr.Image(
+                            label="Annotated image", type="numpy",
+                            height=300, interactive=False,
+                        )
+                        result_md = gr.Markdown("*Results will appear here after detection.*")
 
-        # ── feedback section (visible after a successful detection) ───────────
-        with gr.Group(visible=False) as feedback_group:
-            gr.Markdown("---")
-            gr.Markdown(
-                "## ✏️ Correct a Wrong Prediction\n"
-                "If the model identified an herb incorrectly, use this form "
-                "to submit the correction.  Corrections are used to improve "
-                "the model via **continuous fine-tuning**."
-            )
-            with gr.Row():
-                with gr.Column(scale=2):
-                    wrong_herb_dd = gr.Dropdown(
-                        label="Which herb was wrongly identified?",
-                        choices=[], value=None, interactive=False,
-                    )
-                    correct_herb_dd = gr.Dropdown(
-                        label="What is the correct herb?",
-                        choices=CORRECT_LABEL_CHOICES,
-                        value=None, interactive=True,
-                    )
-                    correction_btn = gr.Button("💾  Submit Correction", variant="secondary")
+                # ── hidden state ──────────────────────────────────────────────
+                detection_state = gr.State(value=None)
 
-                with gr.Column(scale=2):
-                    correction_result = gr.Markdown(
-                        "*Select the wrongly-predicted herb and the correct one, "
-                        "then click Submit Correction.*"
-                    )
-
-            gr.Markdown("---")
-            gr.Markdown(
-                "## 🔄 Manual Retrain Override\n"
-                f"Corrections collected: **{stats['total']}** — "
-                f"already merged: **{stats['merged']}**\n\n"
-                "> Fine-tuning runs **automatically in the background** each time "
-                "you submit a correction above.  Use this button only if you want "
-                "to force an immediate retrain (e.g. after collecting several "
-                "corrections while offline)."
-            )
-            with gr.Row():
-                with gr.Column(scale=1):
-                    device_dd = gr.Dropdown(
-                        label="Device", choices=["cpu", "0", "mps"],
-                        value="cpu", interactive=True,
-                    )
-                    retrain_btn = gr.Button("🚀  Force Retrain Now", variant="secondary")
-                with gr.Column(scale=3):
-                    retrain_result = gr.Markdown(
-                        "*Retraining output will appear here.*"
-                    )
-
-        # ── expert consultation (unknown herbs only) ───────────────────────────
-        with gr.Group(visible=False) as expert_group:
-            gr.Markdown("---")
-            gr.Markdown(
-                "## 🔬 Expert Consultation\n"
-                "This herb could not be identified. "
-                "Submit details for expert review."
-            )
-            with gr.Row():
-                with gr.Column(scale=3):
-                    desc_box = gr.Textbox(
-                        label="Plant Description *",
-                        placeholder="Leaf shape, colour, smell, stem, flower …",
-                        lines=4,
+                # ── feedback section (visible after a detection) ──────────────
+                with gr.Group(visible=False) as feedback_group:
+                    gr.Markdown("---")
+                    gr.Markdown(
+                        "## ✏️ Correct a Wrong Prediction\n"
+                        "If the model identified an herb incorrectly, use this form "
+                        "to submit the correction.  Corrections are used to improve "
+                        "the model via **continuous fine-tuning**."
                     )
                     with gr.Row():
-                        loc_box     = gr.Textbox(label="Location (optional)",
-                                                 placeholder="e.g. Kampala, Uganda")
-                        contact_box = gr.Textbox(label="Contact Email (optional)",
-                                                 placeholder="you@example.com")
-                    expert_btn = gr.Button("📤  Submit to Expert", variant="secondary")
-                with gr.Column(scale=2):
-                    expert_result = gr.Markdown(
-                        "*Reference ID will appear here after submitting.*"
-                    )
+                        with gr.Column(scale=2):
+                            wrong_herb_dd = gr.Dropdown(
+                                label="Which herb was wrongly identified?",
+                                choices=[], value=None, interactive=False,
+                            )
+                            correct_herb_dd = gr.Dropdown(
+                                label="What is the correct herb?",
+                                choices=CORRECT_LABEL_CHOICES,
+                                value=None, interactive=True,
+                            )
+                            correction_btn = gr.Button("💾  Submit Correction", variant="secondary")
 
-        # ── species list ──────────────────────────────────────────────────────
-        with gr.Accordion("Supported herb species", open=False):
-            gr.Markdown(herb_list)
+                        with gr.Column(scale=2):
+                            correction_result = gr.Markdown(
+                                "*Select the wrongly-predicted herb and the correct one, "
+                                "then click Submit Correction.*"
+                            )
+
+                    gr.Markdown("---")
+                    gr.Markdown(
+                        "## 🔄 Manual Retrain Override\n"
+                        f"Corrections collected: **{stats['total']}** — "
+                        f"already merged: **{stats['merged']}**\n\n"
+                        "> Fine-tuning runs **automatically in the background** each time "
+                        "you submit a correction above.  Use this button only if you want "
+                        "to force an immediate retrain (e.g. after collecting several "
+                        "corrections while offline)."
+                    )
+                    with gr.Row():
+                        with gr.Column(scale=1):
+                            device_dd = gr.Dropdown(
+                                label="Device", choices=["cpu", "0", "mps"],
+                                value="cpu", interactive=True,
+                            )
+                            retrain_btn = gr.Button("🚀  Force Retrain Now", variant="secondary")
+                        with gr.Column(scale=3):
+                            retrain_result = gr.Markdown(
+                                "*Retraining output will appear here.*"
+                            )
+
+                # ── expert consultation (unknown herbs only) ───────────────────
+                with gr.Group(visible=False) as expert_group:
+                    gr.Markdown("---")
+                    gr.Markdown(
+                        "## 🔬 Expert Consultation\n"
+                        "This herb could not be identified. "
+                        "Submit details for expert review."
+                    )
+                    with gr.Row():
+                        with gr.Column(scale=3):
+                            desc_box = gr.Textbox(
+                                label="Plant Description *",
+                                placeholder="Leaf shape, colour, smell, stem, flower …",
+                                lines=4,
+                            )
+                            with gr.Row():
+                                loc_box     = gr.Textbox(label="Location (optional)",
+                                                         placeholder="e.g. Kampala, Uganda")
+                                contact_box = gr.Textbox(label="Contact Email (optional)",
+                                                         placeholder="you@example.com")
+                            expert_btn = gr.Button("📤  Submit to Expert", variant="secondary")
+                        with gr.Column(scale=2):
+                            expert_result = gr.Markdown(
+                                "*Reference ID will appear here after submitting.*"
+                            )
+
+                # ── species list ──────────────────────────────────────────────
+                with gr.Accordion("Supported herb species", open=False):
+                    gr.Markdown(herb_list)
+
+            # ══════════════════════════════════════════════════════════════════
+            # Tab 2 — Expert Review
+            # ══════════════════════════════════════════════════════════════════
+            with gr.Tab("🔬 Expert Review"):
+                gr.Markdown(
+                    "## Expert Review Panel\n"
+                    "Review submitted unknown-plant queries, view the uploaded image, "
+                    "and assign a species label. Labelling a known class automatically "
+                    "queues the image for model retraining."
+                )
+
+                with gr.Row():
+                    refresh_btn   = gr.Button("🔄 Refresh Pending Queries", variant="secondary")
+                    pending_count = gr.Markdown("*Click Refresh to load.*")
+
+                query_dd = gr.Dropdown(
+                    label="Select a pending query",
+                    choices=[], value=None, interactive=True,
+                )
+
+                with gr.Row(equal_height=False):
+                    with gr.Column(scale=1):
+                        review_img = gr.Image(
+                            label="Submitted Image",
+                            type="numpy", interactive=False, height=380,
+                        )
+
+                    with gr.Column(scale=1):
+                        query_info_md = gr.Markdown("*Select a query above.*")
+
+                        gr.Markdown("### Assign Label")
+                        review_label_dd = gr.Dropdown(
+                            label="Species",
+                            choices=expert_label_choices,
+                            value=None, interactive=True,
+                        )
+                        new_species_box = gr.Textbox(
+                            label="New species name (fill in if selecting 'New / Unknown Species')",
+                            placeholder="e.g. Vernonia amygdalina",
+                            visible=False,
+                        )
+                        review_notes_box = gr.Textbox(
+                            label="Expert Notes (optional)",
+                            placeholder="Distinguishing features observed, confidence level …",
+                            lines=3,
+                        )
+                        with gr.Row():
+                            label_btn  = gr.Button("✅ Submit Label", variant="primary")
+                            reject_btn = gr.Button("❌ Cannot Identify", variant="stop")
+                        review_result = gr.Markdown()
 
         gr.Markdown(
             "---\n*Model: YOLOv8n-seg — Herbal Plants SpeciesInstSeg dataset (CC BY 4.0)*"
@@ -523,8 +718,57 @@ def build_ui():
 
         expert_btn.click(
             fn=submit_expert_query,
-            inputs=[desc_box, loc_box, contact_box],
+            inputs=[detection_state, desc_box, loc_box, contact_box],
             outputs=[expert_result],
+        )
+
+        # ── expert review wiring ───────────────────────────────────────────────
+        def _refresh():
+            choices = get_pending_choices()
+            count   = f"**{len(choices)}** pending quer{'y' if len(choices)==1 else 'ies'}"
+            return gr.update(choices=choices, value=None), count
+
+        refresh_btn.click(
+            fn=_refresh,
+            outputs=[query_dd, pending_count],
+        )
+
+        query_dd.change(
+            fn=load_query_for_review,
+            inputs=[query_dd],
+            outputs=[review_img, query_info_md],
+        )
+
+        def _toggle_new_species(label):
+            return gr.update(visible=(label == "New / Unknown Species"))
+
+        review_label_dd.change(
+            fn=_toggle_new_species,
+            inputs=[review_label_dd],
+            outputs=[new_species_box],
+        )
+
+        def _submit_label(choice, label, new_species, notes):
+            msg = expert_label_query(choice, label, new_species, notes)
+            # Refresh the dropdown after labelling
+            choices = get_pending_choices()
+            return msg, gr.update(choices=choices, value=None), None, "*Select a query above.*"
+
+        label_btn.click(
+            fn=_submit_label,
+            inputs=[query_dd, review_label_dd, new_species_box, review_notes_box],
+            outputs=[review_result, query_dd, review_img, query_info_md],
+        )
+
+        def _reject(choice, notes):
+            msg = expert_reject_query(choice, notes)
+            choices = get_pending_choices()
+            return msg, gr.update(choices=choices, value=None), None, "*Select a query above.*"
+
+        reject_btn.click(
+            fn=_reject,
+            inputs=[query_dd, review_notes_box],
+            outputs=[review_result, query_dd, review_img, query_info_md],
         )
 
     return demo
