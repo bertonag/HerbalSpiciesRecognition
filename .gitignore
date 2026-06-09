@@ -24,19 +24,7 @@ runs/
 feedback/
 expert_queries.json
 
-# ── Office documents ──────────────────────────────────────────────────────────
-*.pptx
-*.ppt
-*.pdf
-*.docx
-*.doc
-*.odt
-*.xlsx
-*.xls
-*.ods
 
-# ── Dataset zip (keep in repo? comment out if you want to track it) ───────────
-*.zip
 
 # ── OS junk ───────────────────────────────────────────────────────────────────
 .DS_Store
