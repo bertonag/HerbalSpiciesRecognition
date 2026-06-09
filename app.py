@@ -532,24 +532,28 @@ def build_ui():
     #title    { text-align: center; }
     #subtitle { text-align: center; }
 
+    /* Gradio wraps each gr.Markdown in a .block div with its own background.
+       Inside the hero those boxes must be invisible so the gradient shows through. */
+    .hero .block {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+
     /* ── per-theme hero backgrounds ───────────────────────────── */
-    /* Dark — deep forest green */
     html[data-hs-theme="dark"] .hero {
         background: linear-gradient(135deg, #0d1f12 0%, #1c3a26 100%);
     }
-    /* Light — vivid meadow (dark enough for white text) */
     html[data-hs-theme="light"] .hero {
         background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
     }
-    /* Nature — warm bark / earth */
     html[data-hs-theme="nature"] .hero {
         background: linear-gradient(135deg, #4e342e 0%, #795548 100%);
     }
-    /* Ocean — deep coastal */
     html[data-hs-theme="ocean"] .hero {
         background: linear-gradient(135deg, #01579b 0%, #0288d1 100%);
     }
-    /* System — tracks OS; default dark unless OS is light */
     html[data-hs-theme="system"] .hero {
         background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
     }
@@ -558,6 +562,25 @@ def build_ui():
             background: linear-gradient(135deg, #0d1f12 0%, #1c3a26 100%);
         }
     }
+
+    /* ── per-theme page/panel tints (beyond the hero) ─────────── */
+    /* Always preserve the hero gradient — add !important so .block tints can't win */
+    html[data-hs-theme="nature"] .hero {
+        background: linear-gradient(135deg, #4e342e 0%, #795548 100%) !important;
+    }
+    html[data-hs-theme="ocean"] .hero {
+        background: linear-gradient(135deg, #01579b 0%, #0288d1 100%) !important;
+    }
+    /* Nature — warm cream (exclude .hero so the gradient is never overridden) */
+    html[data-hs-theme="nature"] body,
+    html[data-hs-theme="nature"] .gradio-container { background: #fdf6ee !important; }
+    html[data-hs-theme="nature"] .block:not(.hero),
+    html[data-hs-theme="nature"] .panel { background: #fffaf5 !important; }
+    /* Ocean — cool blue-white */
+    html[data-hs-theme="ocean"] body,
+    html[data-hs-theme="ocean"] .gradio-container { background: #eef6fd !important; }
+    html[data-hs-theme="ocean"] .block:not(.hero),
+    html[data-hs-theme="ocean"] .panel { background: #f5f9fe !important; }
 
     /* ── theme-bar ────────────────────────────────────────────── */
     #theme-bar {
@@ -569,12 +592,33 @@ def build_ui():
         flex-wrap: wrap;
     }
     #theme-bar label { font-size: 0.78rem; opacity: 0.7; margin-right: 4px; }
+
+    /* ── theme buttons ───────────────────────────────────────── */
+    .hs-theme-btn button {
+        padding: 3px 12px !important;
+        min-width: 76px !important;
+        font-size: 0.77rem !important;
+        border-radius: 20px !important;
+        border: 1px solid rgba(128,128,128,0.4) !important;
+        transition: background 0.15s, border-color 0.15s !important;
+    }
+    /* hs-active goes on the wrapper div; target the inner button */
+    .hs-theme-btn.hs-active button {
+        background: #2e7d32 !important;
+        border-color: #43a047 !important;
+        color: #ffffff !important;
+    }
     """
 
-    # Gradio 5 supports ?__theme=dark in the URL to fully switch component colours.
-    # The browser is opened with ?__theme=dark by main() so the first paint is
-    # already dark.  The JS below handles theme-switching and shared/bookmarked
-    # URLs that arrive without the param.
+    # Gradio 5 (SvelteKit) manages the 'dark' CSS class via its own reactive
+    # store; toggling the class from external JS gets overridden immediately.
+    # The only reliable way to switch Gradio component colours is the
+    # ?__theme=dark/light URL parameter.  We use gr.Button for theme selection
+    # (not gr.Radio) because buttons always fire .click() regardless of any
+    # previously-selected value, so there is no stuck-state after a page reload.
+    # Every theme gets a unique URL: ?__theme=<gradio-mode>&_hs=<theme-name>
+    # This guarantees window.location.replace() always navigates to a NEW URL,
+    # so the browser always does a full reload and _INIT_JS re-runs cleanly.
     _INIT_JS = """
     () => {
         const GRADIO_MODE = {
@@ -582,55 +626,45 @@ def build_ui():
             Nature: 'light', Ocean: 'light', System: null,
         };
 
-        /* Read saved preference; default to Dark */
         let saved = 'Dark';
         try { saved = localStorage.getItem('hs_theme') || 'Dark'; } catch(e) {}
 
-        /* Apply our custom hero/subtitle CSS */
+        /* Apply hero + page tint immediately */
         document.documentElement.setAttribute('data-hs-theme', saved.toLowerCase());
 
-        /* If the URL's __theme doesn't match the saved preference, sync it */
-        const params     = new URLSearchParams(window.location.search);
-        const urlMode    = params.get('__theme');
-        const wantedMode = GRADIO_MODE[saved];
-        if (wantedMode !== null && urlMode !== wantedMode) {
-            const url = new URL(window.location);
-            url.searchParams.set('__theme', wantedMode);
-            window.location.replace(url.toString());
-            return;
-        }
-        if (saved === 'System' && params.has('__theme')) {
-            const url = new URL(window.location);
-            url.searchParams.delete('__theme');
-            window.location.replace(url.toString());
-            return;
-        }
+        /* Highlight the active button (deferred — Gradio mounts components async) */
+        const markActive = (name) => {
+            document.querySelectorAll('.hs-theme-btn').forEach(el => {
+                el.classList.toggle('hs-active', el.textContent.includes(name));
+            });
+        };
+        setTimeout(() => markActive(saved), 400);
 
-        /* Called by the theme radio button */
-        window._hsSetTheme = (name) => {
-            try { localStorage.setItem('hs_theme', name); } catch(e) {}
-            const mode = GRADIO_MODE[name];
+        /* Build canonical URL for a theme name */
+        const themeUrl = (name) => {
             const url  = new URL(window.location);
-            if (mode !== null) {
-                url.searchParams.set('__theme', mode);
-            } else {
-                url.searchParams.delete('__theme');
-            }
-            window.location.replace(url.toString());
+            const mode = GRADIO_MODE[name];
+            if (mode !== null) { url.searchParams.set('__theme', mode); }
+            else               { url.searchParams.delete('__theme'); }
+            url.searchParams.set('_hs', name.toLowerCase());
+            return url.toString();
         };
 
-        /* Re-apply System theme if OS preference changes */
-        try {
-            window.matchMedia('(prefers-color-scheme: dark)')
-                  .addEventListener('change', () => {
-                      if ((localStorage.getItem('hs_theme') || 'Dark') === 'System')
-                          window.location.reload();
-                  });
-        } catch(e) {}
+        /* On load: if URL doesn't match saved preference, sync it (one redirect) */
+        const params  = new URLSearchParams(window.location.search);
+        const urlHs   = params.get('_hs') || '';
+        if (urlHs.toLowerCase() !== saved.toLowerCase()) {
+            window.location.replace(themeUrl(saved));
+            return;
+        }
+
+        /* Called by the theme buttons — always reloads to the theme's unique URL */
+        window._hsSetTheme = (name) => {
+            try { localStorage.setItem('hs_theme', name); } catch(e) {}
+            window.location.replace(themeUrl(name));
+        };
     }
     """
-
-    _THEME_JS = "(t) => { window._hsSetTheme && window._hsSetTheme(t); }"
 
     with gr.Blocks(
         title="Herbal Plant Recognition",
@@ -648,12 +682,11 @@ def build_ui():
             )
         with gr.Row(elem_id="theme-bar"):
             gr.Markdown("**Theme:**")
-            theme_radio = gr.Radio(
-                choices=["Dark", "Light", "Nature", "Ocean", "System"],
-                value="Dark",
-                show_label=False,
-                container=False,
-            )
+            btn_dark   = gr.Button("🌙 Dark",   size="sm", variant="secondary", elem_classes="hs-theme-btn", elem_id="hs-btn-dark")
+            btn_light  = gr.Button("☀️ Light",  size="sm", variant="secondary", elem_classes="hs-theme-btn", elem_id="hs-btn-light")
+            btn_nature = gr.Button("🌿 Nature", size="sm", variant="secondary", elem_classes="hs-theme-btn", elem_id="hs-btn-nature")
+            btn_ocean  = gr.Button("🌊 Ocean",  size="sm", variant="secondary", elem_classes="hs-theme-btn", elem_id="hs-btn-ocean")
+            btn_system = gr.Button("💻 System", size="sm", variant="secondary", elem_classes="hs-theme-btn", elem_id="hs-btn-system")
 
         if model_err:
             gr.Markdown(f"> ⚠️ {model_err}")
@@ -847,11 +880,11 @@ def build_ui():
             outputs=[expert_result],
         )
 
-        theme_radio.change(
-            fn=None,
-            inputs=[theme_radio],
-            js=_THEME_JS,
-        )
+        btn_dark.click(  fn=None, js="() => { window._hsSetTheme && window._hsSetTheme('Dark');   }")
+        btn_light.click( fn=None, js="() => { window._hsSetTheme && window._hsSetTheme('Light');  }")
+        btn_nature.click(fn=None, js="() => { window._hsSetTheme && window._hsSetTheme('Nature'); }")
+        btn_ocean.click( fn=None, js="() => { window._hsSetTheme && window._hsSetTheme('Ocean');  }")
+        btn_system.click(fn=None, js="() => { window._hsSetTheme && window._hsSetTheme('System'); }")
 
         # ── expert review wiring ───────────────────────────────────────────────
         def _refresh():
@@ -948,7 +981,7 @@ def main():
     # applies dark mode on the very first paint — no redirect flash.
     def _open_browser():
         time.sleep(2.0)   # wait for the server to be ready
-        webbrowser.open(f"http://127.0.0.1:{args.port}/?__theme=dark")
+        webbrowser.open(f"http://127.0.0.1:{args.port}/?__theme=dark&_hs=dark")
 
     threading.Thread(target=_open_browser, daemon=True).start()
     demo.launch(server_port=args.port, share=args.share, inbrowser=False)
