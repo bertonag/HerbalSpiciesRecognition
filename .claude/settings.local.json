@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "PowerShell(tar -tzf \"f:\\\\muk\\\\Sem2\\\\Computer Vision\\\\HerbalRecognition\\\\Herbal Plants SpeciesInstSeg.yolov8.zip\" 2>$null | Where-Object { $_ -match \"test/images\" } | Measure-Object -Line)"
-    ]
-  }
-}
