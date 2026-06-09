@@ -89,7 +89,7 @@ def train(epochs: int, batch: int, device: str, resume: bool):
         name="train",
         exist_ok=True,
         resume=resume,
-        # ── augmentation (critical for 74-image dataset) ──────────────────
+        # ── augmentation ──────────────────────────────────────────────────
         hsv_h=0.02,          # hue shift  – herb colour varies by season/lighting
         hsv_s=0.75,          # saturation – handle over/under-saturated photos
         hsv_v=0.4,           # value      – handle different lighting conditions
@@ -116,8 +116,8 @@ def train(epochs: int, batch: int, device: str, resume: bool):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train herbal plant recognition model")
-    parser.add_argument("--epochs", type=int, default=150,
-                        help="Max training epochs (default 150; early-stop kicks in)")
+    parser.add_argument("--epochs", type=int, default=100,
+                        help="Max training epochs (default 100; early-stop patience=40)")
     parser.add_argument("--batch",  type=int, default=8,
                         help="Batch size (default 8; use 4 on low-RAM machines)")
     parser.add_argument("--device", type=str, default="cpu",
