@@ -857,7 +857,7 @@ def build():
             "Classes absent from the validation set are omitted.", sCaption))
         _vp = RUNS_DIR / "val_batch0_pred.jpg"
         if _vp.exists():
-            story.extend(_col_fig(
+            story.extend(_full_fig(
                 _vp,
                 "Figure 2. Sample validation batch predictions from the "
                 "best checkpoint (epoch 68)."
@@ -897,7 +897,7 @@ def build():
         ))
         _f1 = RUNS_DIR / "f1_curve.png"
         if _f1.exists():
-            story.extend(_col_fig(
+            story.extend(_full_fig(
                 _f1,
                 "Figure 4. F1-confidence curve. "
                 "Peak mean F1=0.41 at confidence ≈ 0.24."
