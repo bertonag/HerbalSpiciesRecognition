@@ -110,6 +110,15 @@ sBullet  = S("bullet",  leftIndent=14, firstLineIndent=-10, spaceAfter=2)
 sPending = S("pending", fontName=TIMES_ITAL, fontSize=9, leading=11,
              alignment=TA_CENTER, spaceAfter=4,
              backColor=colors.HexColor("#FFF8E1"))
+sTCell   = S("tcell",  fontSize=8, leading=10, spaceAfter=0)
+sTHead   = S("thead",  fontName=TIMES_BOLD, fontSize=8, leading=10,
+             alignment=TA_CENTER, spaceAfter=0)
+
+def tc(text):
+    return Paragraph(text, sTCell)
+
+def th(text):
+    return Paragraph(text, sTHead)
 
 
 def sec(num, title):
@@ -187,17 +196,17 @@ def _ts_plain():
 def feature_table() -> Table:
     """Table 1 — feature groups and their discriminative targets."""
     data = [
-        ["Feature Group",     "Descriptor",          "Primary Discriminant"],
-        ["Colour",            "HSV histograms",       "Perilla (purple H), Sugar cane (pale)"],
-        ["Colour",            "LAB a* channel",       "Red-green axis — Perilla vs green herbs"],
-        ["Colour",            "Vegetation indices",   "Plant pixels vs soil / background"],
-        ["Colour",            "Chromaticity r,g,b",   "Illumination-invariant colour ratio"],
-        ["Texture",           "Gabor banks (6×4)",    "Venation, surface hairiness, margins"],
-        ["Texture",           "LBP (multi-radius)",   "Micro-texture: waxy vs hairy surfaces"],
-        ["Texture",           "GLCM Haralick",        "Energy/contrast — smooth vs rough"],
-        ["Shape",             "Hu moments (7)",       "Global leaf shape, elongation"],
-        ["Shape",             "Fourier descriptors",  "Serration frequency (False Daisy)"],
-        ["Shape",             "Geometric props.",     "Solidity — lobed leaves (Momordica)"],
+        [th("Feature Group"),    th("Descriptor"),           th("Primary Discriminant")],
+        [tc("Colour"),           tc("HSV histograms"),        tc("Perilla (purple H), Sugar cane (pale)")],
+        [tc("Colour"),           tc("LAB a* channel"),        tc("Red-green axis — Perilla vs green herbs")],
+        [tc("Colour"),           tc("Vegetation indices"),    tc("Plant pixels vs soil / background")],
+        [tc("Colour"),           tc("Chromaticity r,g,b"),    tc("Illumination-invariant colour ratio")],
+        [tc("Texture"),          tc("Gabor banks (6×4)"), tc("Venation, surface hairiness, margins")],
+        [tc("Texture"),          tc("LBP (multi-radius)"),    tc("Micro-texture: waxy vs hairy surfaces")],
+        [tc("Texture"),          tc("GLCM Haralick"),         tc("Energy/contrast — smooth vs rough")],
+        [tc("Shape"),            tc("Hu moments (7)"),        tc("Global leaf shape, elongation")],
+        [tc("Shape"),            tc("Fourier descriptors"),   tc("Serration frequency (False Daisy)")],
+        [tc("Shape"),            tc("Geometric props."),      tc("Solidity — lobed leaves (Momordica)")],
     ]
     cw = [COL_W*0.25, COL_W*0.30, COL_W*0.45]
     t = Table(data, colWidths=cw)
@@ -208,13 +217,13 @@ def feature_table() -> Table:
 def enhancement_table() -> Table:
     """Table 2 — enhancement techniques."""
     data = [
-        ["Technique",         "Mechanism",                          "Why it Helps"],
-        ["CLAHE",             "Tile-wise hist. equalisation",       "Corrects mixed sun/shade in field photos"],
-        ["Bilateral filter",  "Edge-preserving spatial smooth",     "Preserves veins while removing sensor noise"],
-        ["Multi-Scale Retinex","log(I) – log(I*G_σ), 3 scales",    "Removes illumination cast from canopy"],
-        ["Gamma correction",  "I^(1/γ), γ=0.45",                   "Recovers shadow detail without clipping"],
-        ["Unsharp masking",   "I + α(I – I_blur)",                  "Sharpens serrations and venation detail"],
-        ["Median filter",     "Rank-order 3×3",                     "Removes salt-and-pepper noise pre-LBP"],
+        [th("Technique"),          th("Mechanism"),                        th("Why it Helps")],
+        [tc("CLAHE"),              tc("Tile-wise hist. equalisation"),      tc("Corrects mixed sun/shade in field photos")],
+        [tc("Bilateral filter"),   tc("Edge-preserving spatial smooth"),    tc("Preserves veins while removing sensor noise")],
+        [tc("Multi-Scale Retinex"),tc("log(I) – log(I*G), 3 scales"), tc("Removes illumination cast from canopy")],
+        [tc("Gamma correction"),   tc("I^(1/g), g=0.45"),                  tc("Recovers shadow detail without clipping")],
+        [tc("Unsharp masking"),    tc("I + a(I – I_blur)"),            tc("Sharpens serrations and venation detail")],
+        [tc("Median filter"),      tc("Rank-order 3×3"),               tc("Removes salt-and-pepper noise pre-LBP")],
     ]
     cw = [COL_W*0.26, COL_W*0.34, COL_W*0.40]
     t = Table(data, colWidths=cw)
