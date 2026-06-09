@@ -21,13 +21,14 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER, TA_LEFT
 from reportlab.platypus import (
     BaseDocTemplate, PageTemplate, Frame, Paragraph, Spacer,
-    Table, TableStyle, HRFlowable, PageBreak,
+    Table, TableStyle, HRFlowable, PageBreak, Image,
 )
 from reportlab.lib import colors
 
 BASE_DIR     = Path(__file__).parent
 OUT          = BASE_DIR / "HerbScan_CVPR_Report.pdf"
 METRICS_JSON = BASE_DIR / "runs" / "train" / "metrics.json"
+RUNS_DIR     = BASE_DIR / "runs" / "train"
 
 _FALLBACK = {
     "overall": {
@@ -128,6 +129,40 @@ def rule():
 
 def bullet(text):
     return Paragraph(f"• {text}", sBullet)
+
+
+def _full_fig(img_path, caption):
+    """Full-width figure placed on its own page using the FullWidth template."""
+    from reportlab.platypus.doctemplate import NextPageTemplate
+    img = Image(str(img_path))
+    fw = PW - LM - RM
+    fh = PH - TM - BM - 0.5 * inch
+    scale = min(fw / img.imageWidth, fh / img.imageHeight)
+    img.drawWidth  = img.imageWidth  * scale
+    img.drawHeight = img.imageHeight * scale
+    return [
+        NextPageTemplate("FullWidth"),
+        PageBreak(),
+        img,
+        Spacer(1, 4),
+        Paragraph(caption, sCaption),
+        NextPageTemplate("TwoCol"),
+        PageBreak(),
+    ]
+
+
+def _col_fig(img_path, caption, width=None):
+    """Single-column figure embedded in the current column flow."""
+    w = width or COL_W
+    img = Image(str(img_path))
+    img.drawWidth  = w
+    img.drawHeight = img.imageHeight * (w / img.imageWidth)
+    return [
+        img,
+        Spacer(1, 3),
+        Paragraph(caption, sCaption),
+        Spacer(1, 6),
+    ]
 
 
 # ── table helpers ─────────────────────────────────────────────────────────────
@@ -268,8 +303,9 @@ def build():
         canvas.restoreState()
 
     doc.addPageTemplates([
-        PageTemplate(id="Title",  frames=[f_full],          onPage=_footer),
-        PageTemplate(id="TwoCol", frames=[f_left, f_right], onPage=_footer),
+        PageTemplate(id="Title",     frames=[f_full],          onPage=_footer),
+        PageTemplate(id="TwoCol",    frames=[f_left, f_right], onPage=_footer),
+        PageTemplate(id="FullWidth", frames=[f_full],          onPage=_footer),
     ])
 
     story = []
@@ -295,9 +331,9 @@ def build():
     else:
         map_str = f"{ov['mAP50']:.2f} mAP50 and {ov['mAP50_95']:.2f} mAP50-95"
     story.append(p(
-        "We present <b>HerbScan</b>, a computer vision system for real-time "
+        "I present <b>HerbScan</b>, a computer vision system for real-time "
         "identification of 17 medicinal herbal plant species using YOLOv8 "
-        "instance segmentation. We provide a systematic analysis of the "
+        "instance segmentation. I provide a systematic analysis of the "
         "visual properties that distinguish East African medicinal herbs — "
         "colour (HSV, LAB, vegetation indices), texture (Gabor filter banks, "
         "LBP, GLCM), and morphological shape (Hu moments, Fourier "
@@ -335,7 +371,7 @@ def build():
         "field botany. YOLOv8-seg [3] achieves this at near-real-time "
         "speeds on CPU hardware."
     ))
-    story.append(p("We make the following contributions:"))
+    story.append(p("I make the following contributions:"))
     for item in [
         "<b>(1)</b> A systematic feature analysis identifying the most "
         "discriminative colour, texture, and morphological properties "
@@ -394,7 +430,7 @@ def build():
         "Catastrophic forgetting [9] occurs when fine-tuning on new data "
         "overwrites knowledge from prior training. Elastic Weight "
         "Consolidation (EWC) and rehearsal-based methods formalise this "
-        "trade-off. Our low-learning-rate fine-tuning strategy (lr=0.0005, "
+        "trade-off. My low-learning-rate fine-tuning strategy (lr=0.0005, "
         "one-tenth of initial training) is a pragmatic approximation "
         "that effectively limits weight drift for small correction batches."
     ))
@@ -404,7 +440,7 @@ def build():
 
     story.append(subsec("3.1", "Herbal Plants SpeciesInstSeg"))
     story.append(p(
-        "We use the Herbal Plants SpeciesInstSeg dataset [10] in YOLOv8 "
+        "I use the Herbal Plants SpeciesInstSeg dataset [10] in YOLOv8 "
         "instance segmentation format. The dataset spans <b>17 medicinal "
         "herb classes</b> common in East Africa: "
         "<i>Bitter Leaf (Mululuza), Cape Gooseberry (ntuntunu), "
@@ -439,11 +475,11 @@ def build():
     story.append(p(
         "Effective plant identification depends on selecting image features "
         "that capture the visual properties botanists use for diagnosis. "
-        "We identify three primary feature modalities — colour, texture, "
+        "I identify three primary feature modalities — colour, texture, "
         "and shape — and describe the most appropriate extraction and "
         "enhancement techniques for each. Table 2 summarises the feature "
         "groups with their descriptors and primary discriminative targets "
-        "across our 17 classes."
+        "across the 17 classes."
     ))
 
     story.append(subsec("4.1", "Discriminative Visual Properties of Herbal Plants"))
@@ -550,7 +586,7 @@ def build():
         "<b>Grey-Level Co-occurrence Matrix (GLCM).</b> The GLCM "
         "counts pairwise pixel intensity co-occurrences at offset "
         "(d, θ). Haralick derived 14 statistical features from it; "
-        "we use the five most discriminative: <i>energy</i> "
+        "I use the five most discriminative: <i>energy</i> "
         "(angular second moment, high for uniform surfaces), "
         "<i>contrast</i> (high for deeply veined leaves), "
         "<i>correlation</i> (statistical dependency between pixel "
@@ -678,7 +714,7 @@ def build():
 
     story.append(subsec("5.1", "Model Architecture"))
     story.append(p(
-        "We fine-tune <b>YOLOv8n-seg</b> pre-trained on COCO. The "
+        "I fine-tune <b>YOLOv8n-seg</b> pre-trained on COCO. The "
         "CSP-Darknet backbone (3.26M parameters, 11.4 GFLOPs) learns "
         "hierarchical representations that implicitly encode the "
         "colour, texture, and shape features identified in Section 4. "
@@ -796,12 +832,27 @@ def build():
         story.append(Paragraph(
             "Table 3. Overall validation metrics (Box = detection head, "
             "Mask = segmentation head).", sCaption))
+        _tc = RUNS_DIR / "results.png"
+        if _tc.exists():
+            story.extend(_full_fig(
+                _tc,
+                f"Figure 1. Training curves over {total_epochs} epochs. "
+                f"Loss (box, cls, dfl) and mAP50 on the validation set. "
+                f"Best checkpoint saved at epoch {conv_epoch}."
+            ))
 
         story.append(subsec("7.2", "Per-Class Analysis"))
         story.append(metrics_table(per_class))
         story.append(Paragraph(
             "Table 4. Per-class metrics on the validation split. "
             "Classes absent from the validation set are omitted.", sCaption))
+        _vp = RUNS_DIR / "val_batch0_pred.jpg"
+        if _vp.exists():
+            story.extend(_col_fig(
+                _vp,
+                "Figure 2. Sample validation batch predictions from the "
+                "best checkpoint (epoch 68)."
+            ))
 
         best_name  = best_cls.get("class", "—")
         best_map   = best_cls.get("mAP50", 0)
@@ -820,6 +871,14 @@ def build():
             "Section 4.1 identifying green-on-green camouflage as the "
             "primary difficulty for visually similar species."
         ))
+        _cm = RUNS_DIR / "confusion_matrix_normalized.png"
+        if _cm.exists():
+            story.extend(_full_fig(
+                _cm,
+                "Figure 3. Row-normalised confusion matrix on the validation "
+                "set. Diagonal entries show per-class recall; off-diagonal "
+                "entries indicate inter-class confusions."
+            ))
 
         story.append(subsec("7.3", "Inference Speed"))
         story.append(p(
@@ -827,6 +886,13 @@ def build():
             "forward pass 73.5 ms, post-processing 14.6 ms — "
             "≈89 ms total (≈11 FPS), sufficient for interactive use."
         ))
+        _f1 = RUNS_DIR / "f1_curve.png"
+        if _f1.exists():
+            story.extend(_col_fig(
+                _f1,
+                "Figure 4. F1-confidence curve. "
+                "Peak mean F1=0.41 at confidence ≈ 0.24."
+            ))
 
         story.append(subsec("7.4", "Confusion Analysis"))
         story.append(p(
@@ -908,7 +974,7 @@ def build():
         result_str = (f"The system achieves {ov['mAP50']:.2f} mAP50 on "
                       "the 17-class validation set.")
     story.append(p(
-        "We presented HerbScan, a complete pipeline for medicinal herb "
+        "I present HerbScan, a complete pipeline for medicinal herb "
         "identification using YOLOv8 instance segmentation with "
         "continuous learning. A systematic feature analysis identified "
         "HSV/LAB colour, Gabor/LBP/GLCM texture, and Hu-moment/Fourier "
