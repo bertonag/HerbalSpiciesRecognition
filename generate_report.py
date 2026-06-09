@@ -326,9 +326,14 @@ def build():
         sTitle))
     story.append(sp(4))
     story.append(Paragraph("Gilbert Nyakana", sAuthor))
+    story.append(Paragraph("Reg No: 2024/HD05/21952U", sAffil))
     story.append(Paragraph(
         "Makerere University &nbsp;&nbsp;·&nbsp;&nbsp; "
         "Department of Computer Science &nbsp;&nbsp;·&nbsp;&nbsp; Kampala, Uganda",
+        sAffil))
+    story.append(Paragraph(
+        "Course: MCS 7224: Computer Vision &nbsp;&nbsp;·&nbsp;&nbsp; "
+        "Supervisor: Dr Rose Nakibuule",
         sAffil))
     story.append(Paragraph("gilbertnyakana@gmail.com", sAffil))
     story.append(sp(6))
@@ -855,14 +860,6 @@ def build():
         story.append(Paragraph(
             "Table 4. Per-class metrics on the validation split. "
             "Classes absent from the validation set are omitted.", sCaption))
-        _vp = RUNS_DIR / "val_batch0_pred.jpg"
-        if _vp.exists():
-            story.extend(_full_fig(
-                _vp,
-                "Figure 2. Sample validation batch predictions from the "
-                "best checkpoint (epoch 68)."
-            ))
-
         best_name  = best_cls.get("class", "—")
         best_map   = best_cls.get("mAP50", 0)
         worst_name = worst_cls.get("class", "—")
@@ -884,7 +881,7 @@ def build():
         if _cm.exists():
             story.extend(_full_fig(
                 _cm,
-                "Figure 3. Row-normalised confusion matrix on the validation "
+                "Figure 2. Row-normalised confusion matrix on the validation "
                 "set. Diagonal entries show per-class recall; off-diagonal "
                 "entries indicate inter-class confusions."
             ))
@@ -895,14 +892,6 @@ def build():
             "forward pass 73.5 ms, post-processing 14.6 ms — "
             "≈89 ms total (≈11 FPS), sufficient for interactive use."
         ))
-        _f1 = RUNS_DIR / "f1_curve.png"
-        if _f1.exists():
-            story.extend(_full_fig(
-                _f1,
-                "Figure 4. F1-confidence curve. "
-                "Peak mean F1=0.41 at confidence ≈ 0.24."
-            ))
-
         story.append(subsec("7.4", "Confusion Analysis"))
         story.append(p(
             "The confusion matrix reveals false negatives as the dominant "
