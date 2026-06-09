@@ -128,6 +128,11 @@ def run_inference(image_np: np.ndarray):
     if model is None:
         return image_np, [], [], True
 
+    # Enhance before inference: CLAHE → bilateral → adaptive gamma.
+    # Gradio delivers RGB; OpenCV works in BGR — convert round-trip.
+    from preprocess import enhance_image
+    image_np = enhance_image(image_np[..., ::-1])[..., ::-1]
+
     results = model(image_np, conf=CONFIDENCE_THRESHOLD, verbose=False)
     result  = results[0]
 

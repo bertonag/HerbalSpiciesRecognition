@@ -3,8 +3,9 @@ Herbal Plant Recognition - Training Script
 ==========================================
 Steps:
   1. Extract dataset from zip
-  2. Fix data.yaml paths
-  3. Train YOLOv8n-seg with transfer learning
+  2. Enhance images: CLAHE → bilateral filter → adaptive gamma (once, in-place)
+  3. Fix data.yaml paths
+  4. Train YOLOv8n-seg with transfer learning
 
 Usage:
     python train.py
@@ -68,6 +69,8 @@ def train(epochs: int, batch: int, device: str, resume: bool):
         return BEST_PT
 
     extract_dataset()
+    from preprocess import preprocess_dataset
+    preprocess_dataset(DATASET_DIR)
     fix_yaml_paths()
 
     print(f"\n[INFO] Training YOLOv8n-seg for up to {epochs} epochs …")
