@@ -572,26 +572,26 @@ def build_ui():
     """
 
     # Gradio 5 supports ?__theme=dark in the URL to fully switch component colours.
-    # On first visit we redirect to append it; on theme-switch we update it.
+    # The browser is opened with ?__theme=dark by main() so the first paint is
+    # already dark.  The JS below handles theme-switching and shared/bookmarked
+    # URLs that arrive without the param.
     _INIT_JS = """
     () => {
-        const params  = new URLSearchParams(window.location.search);
-        const urlMode = params.get('__theme');          // 'dark'|'light'|null
-
-        /* Map our named themes to Gradio's dark/light URL param */
         const GRADIO_MODE = {
             Dark: 'dark', Light: 'light',
             Nature: 'light', Ocean: 'light', System: null,
         };
 
-        /* Resolve which hs-theme to show */
+        /* Read saved preference; default to Dark */
         let saved = 'Dark';
         try { saved = localStorage.getItem('hs_theme') || 'Dark'; } catch(e) {}
 
-        /* Apply data-hs-theme for our CSS */
+        /* Apply our custom hero/subtitle CSS */
         document.documentElement.setAttribute('data-hs-theme', saved.toLowerCase());
 
-        /* If Gradio URL param doesn't match what we want, redirect once */
+        /* If the URL's __theme doesn't match the saved preference, sync it */
+        const params     = new URLSearchParams(window.location.search);
+        const urlMode    = params.get('__theme');
         const wantedMode = GRADIO_MODE[saved];
         if (wantedMode !== null && urlMode !== wantedMode) {
             const url = new URL(window.location);
@@ -599,7 +599,6 @@ def build_ui():
             window.location.replace(url.toString());
             return;
         }
-        /* System theme: let Gradio follow OS if no __theme param */
         if (saved === 'System' && params.has('__theme')) {
             const url = new URL(window.location);
             url.searchParams.delete('__theme');
@@ -607,7 +606,7 @@ def build_ui():
             return;
         }
 
-        /* Register switcher used by the radio button */
+        /* Called by the theme radio button */
         window._hsSetTheme = (name) => {
             try { localStorage.setItem('hs_theme', name); } catch(e) {}
             const mode = GRADIO_MODE[name];
@@ -620,13 +619,12 @@ def build_ui():
             window.location.replace(url.toString());
         };
 
-        /* System media query listener */
+        /* Re-apply System theme if OS preference changes */
         try {
             window.matchMedia('(prefers-color-scheme: dark)')
                   .addEventListener('change', () => {
-                      if ((localStorage.getItem('hs_theme') || 'Dark') === 'System') {
+                      if ((localStorage.getItem('hs_theme') || 'Dark') === 'System')
                           window.location.reload();
-                      }
                   });
         } catch(e) {}
     }
@@ -935,6 +933,8 @@ def _disable_brotli_middleware() -> None:
 
 
 def main():
+    import time, webbrowser
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--port",  type=int, default=7860)
     parser.add_argument("--share", action="store_true")
@@ -943,7 +943,15 @@ def main():
     _disable_brotli_middleware()
     demo = build_ui()
     demo.queue()          # required for generator-based retrain progress
-    demo.launch(server_port=args.port, share=args.share, inbrowser=True)
+
+    # Open the browser with ?__theme=dark already in the URL so Gradio
+    # applies dark mode on the very first paint — no redirect flash.
+    def _open_browser():
+        time.sleep(2.0)   # wait for the server to be ready
+        webbrowser.open(f"http://127.0.0.1:{args.port}/?__theme=dark")
+
+    threading.Thread(target=_open_browser, daemon=True).start()
+    demo.launch(server_port=args.port, share=args.share, inbrowser=False)
 
 
 if __name__ == "__main__":
