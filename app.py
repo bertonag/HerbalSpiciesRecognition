@@ -512,65 +512,51 @@ def build_ui():
     expert_label_choices = [n for n in CLASS_NAMES if n != UNKNOWN_CLASS_NAME] + ["New / Unknown Species"]
 
     _CSS = """
-    /* ── title / subtitle ─────────────────────────────────────── */
-    #title    { text-align: center; }
-    #subtitle { text-align: center; }
-
-    /* ── hero banner — per-theme ───────────────────────────────── */
+    /* ── hero: always white text, theme changes the background ─── */
     .hero {
         border-radius: 12px;
         padding: 1.4rem 1.2rem;
         margin-bottom: 0.6rem;
-        transition: background 0.35s ease;
+        transition: background 0.4s ease;
+        /* default (first paint, before JS sets data-hs-theme) */
+        background: linear-gradient(135deg, #122a1a 0%, #1c3a26 100%);
     }
+    /* Force all text inside the hero to white — overrides Gradio defaults */
+    .hero, .hero *, .hero h1, .hero h2, .hero h3, .hero p, .hero span,
+    #title, #title *, #subtitle, #subtitle * {
+        color: #ffffff !important;
+    }
+    /* Subtitle slightly softer */
+    #subtitle, #subtitle * { color: rgba(255,255,255,0.80) !important; }
 
-    /* Dark (default) — deep forest green */
-    html.dark .hero,
+    #title    { text-align: center; }
+    #subtitle { text-align: center; }
+
+    /* ── per-theme hero backgrounds ───────────────────────────── */
+    /* Dark — deep forest green */
     html[data-hs-theme="dark"] .hero {
-        background: linear-gradient(135deg, #122a1a 0%, #1c3a26 100%);
+        background: linear-gradient(135deg, #0d1f12 0%, #1c3a26 100%);
     }
-    html.dark #subtitle,
-    html[data-hs-theme="dark"] #subtitle { color: #88bb99; }
-
-    /* Light — fresh meadow */
+    /* Light — vivid meadow (dark enough for white text) */
     html[data-hs-theme="light"] .hero {
-        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+        background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
     }
-    html[data-hs-theme="light"] #subtitle { color: #3a6647; }
-
-    /* Nature — warm earth tones */
+    /* Nature — warm bark / earth */
     html[data-hs-theme="nature"] .hero {
-        background: linear-gradient(135deg, #f5efe0 0%, #e8ddc8 100%);
+        background: linear-gradient(135deg, #4e342e 0%, #795548 100%);
     }
-    html[data-hs-theme="nature"] #subtitle { color: #7a5c2e; }
-
-    /* Ocean — cool coastal */
+    /* Ocean — deep coastal */
     html[data-hs-theme="ocean"] .hero {
-        background: linear-gradient(135deg, #e0f2fb 0%, #c8e8f8 100%);
+        background: linear-gradient(135deg, #01579b 0%, #0288d1 100%);
     }
-    html[data-hs-theme="ocean"] #subtitle { color: #1a5f8a; }
-
-    /* System (no explicit theme attr) — falls back to OS */
-    html:not([data-hs-theme]) .hero {
-        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+    /* System — tracks OS; default dark unless OS is light */
+    html[data-hs-theme="system"] .hero {
+        background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
     }
-    html.dark:not([data-hs-theme]) .hero {
-        background: linear-gradient(135deg, #122a1a 0%, #1c3a26 100%);
-    }
-    html:not([data-hs-theme]) #subtitle { color: #555; }
-    html.dark:not([data-hs-theme]) #subtitle { color: #88bb99; }
-
-    /* ── Nature accent overrides ──────────────────────────────── */
-    html[data-hs-theme="nature"] .primary { --button-primary-background-fill: #8B6914 !important; }
-    html[data-hs-theme="nature"] button.primary,
-    html[data-hs-theme="nature"] .gr-button-primary {
-        background: #8B6914 !important;
-    }
-
-    /* ── Ocean accent overrides ───────────────────────────────── */
-    html[data-hs-theme="ocean"] button.primary,
-    html[data-hs-theme="ocean"] .gr-button-primary {
-        background: #0077B6 !important;
+    @media (prefers-color-scheme: dark) {
+        html[data-hs-theme="system"] .hero {
+            background: linear-gradient(135deg, #0d1f12 0%, #1c3a26 100%);
+        }
     }
 
     /* ── theme-bar ────────────────────────────────────────────── */
@@ -579,67 +565,74 @@ def build_ui():
         justify-content: flex-end;
         align-items: center;
         gap: 6px;
-        padding: 2px 4px 6px 4px;
+        padding: 2px 4px 8px 4px;
         flex-wrap: wrap;
     }
     #theme-bar label { font-size: 0.78rem; opacity: 0.7; margin-right: 4px; }
     """
 
+    # Gradio 5 supports ?__theme=dark in the URL to fully switch component colours.
+    # On first visit we redirect to append it; on theme-switch we update it.
     _INIT_JS = """
     () => {
-        /* --- theme engine ---------------------------------------- */
-        const THEMES = {
-            'Dark': () => {
-                document.documentElement.classList.add('dark');
-                document.documentElement.setAttribute('data-hs-theme', 'dark');
-            },
-            'Light': () => {
-                document.documentElement.classList.remove('dark');
-                document.documentElement.setAttribute('data-hs-theme', 'light');
-            },
-            'Nature': () => {
-                document.documentElement.classList.remove('dark');
-                document.documentElement.setAttribute('data-hs-theme', 'nature');
-            },
-            'Ocean': () => {
-                document.documentElement.classList.remove('dark');
-                document.documentElement.setAttribute('data-hs-theme', 'ocean');
-            },
-            'System': () => {
-                document.documentElement.removeAttribute('data-hs-theme');
-                const prefersDark = window.matchMedia &&
-                    window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (prefersDark) {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
-            },
-        };
-        window._hsSetTheme = (name) => {
-            if (THEMES[name]) {
-                THEMES[name]();
-                try { localStorage.setItem('hs_theme', name); } catch(e) {}
-            }
+        const params  = new URLSearchParams(window.location.search);
+        const urlMode = params.get('__theme');          // 'dark'|'light'|null
+
+        /* Map our named themes to Gradio's dark/light URL param */
+        const GRADIO_MODE = {
+            Dark: 'dark', Light: 'light',
+            Nature: 'light', Ocean: 'light', System: null,
         };
 
-        /* auto-listen for system colour-scheme changes */
+        /* Resolve which hs-theme to show */
+        let saved = 'Dark';
+        try { saved = localStorage.getItem('hs_theme') || 'Dark'; } catch(e) {}
+
+        /* Apply data-hs-theme for our CSS */
+        document.documentElement.setAttribute('data-hs-theme', saved.toLowerCase());
+
+        /* If Gradio URL param doesn't match what we want, redirect once */
+        const wantedMode = GRADIO_MODE[saved];
+        if (wantedMode !== null && urlMode !== wantedMode) {
+            const url = new URL(window.location);
+            url.searchParams.set('__theme', wantedMode);
+            window.location.replace(url.toString());
+            return;
+        }
+        /* System theme: let Gradio follow OS if no __theme param */
+        if (saved === 'System' && params.has('__theme')) {
+            const url = new URL(window.location);
+            url.searchParams.delete('__theme');
+            window.location.replace(url.toString());
+            return;
+        }
+
+        /* Register switcher used by the radio button */
+        window._hsSetTheme = (name) => {
+            try { localStorage.setItem('hs_theme', name); } catch(e) {}
+            const mode = GRADIO_MODE[name];
+            const url  = new URL(window.location);
+            if (mode !== null) {
+                url.searchParams.set('__theme', mode);
+            } else {
+                url.searchParams.delete('__theme');
+            }
+            window.location.replace(url.toString());
+        };
+
+        /* System media query listener */
         try {
             window.matchMedia('(prefers-color-scheme: dark)')
                   .addEventListener('change', () => {
-                      const cur = localStorage.getItem('hs_theme') || 'Dark';
-                      if (cur === 'System') THEMES['System']();
+                      if ((localStorage.getItem('hs_theme') || 'Dark') === 'System') {
+                          window.location.reload();
+                      }
                   });
         } catch(e) {}
-
-        /* apply saved or default theme */
-        let saved = 'Dark';
-        try { saved = localStorage.getItem('hs_theme') || 'Dark'; } catch(e) {}
-        window._hsSetTheme(saved);
     }
     """
 
-    _THEME_JS = "(t) => { window._hsSetTheme && window._hsSetTheme(t); return t; }"
+    _THEME_JS = "(t) => { window._hsSetTheme && window._hsSetTheme(t); }"
 
     with gr.Blocks(
         title="Herbal Plant Recognition",
