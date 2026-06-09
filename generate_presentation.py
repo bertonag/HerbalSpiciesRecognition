@@ -181,7 +181,8 @@ def build():
     m           = load_metrics()
     ov          = m["overall"]
     per_class   = m["per_class"]
-    conv_epoch  = m.get("converged_epoch") or 88
+    conv_epoch   = m.get("converged_epoch") or 68
+    total_epochs = m.get("total_epochs", 100)
 
     sorted_cls  = sorted(per_class, key=lambda c: c["mAP50"], reverse=True)
     best_cls    = sorted_cls[0]  if sorted_cls else {"class": "—", "mAP50": 0}
@@ -407,7 +408,7 @@ def build():
     add_text_box(sl, "Training Configuration:", 0.3, 4.3, 12.5, 0.45,
                  font_size=15, bold=True, color=GREEN_DARK)
     train_items = [
-        "Epochs: 150 (early stop patience=40)   |   Converged: epoch 88",
+        f"Epochs: {total_epochs} trained  |  Best: epoch {conv_epoch}  |  patience=40",
         "Optimiser: AdamW  |  lr₀=0.01  |  Cosine annealing",
         "Augmentation: Mosaic p=1.0, MixUp α=0.15, Copy-Paste p=0.2",
         "Geometric: rotation ±15°, scale ×[0.4–1.6], shear ±5°, flips",

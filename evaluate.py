@@ -268,15 +268,25 @@ def _save_metrics_json(metrics, class_names: list[str], save_dir: Path):
             "mAP50_95": round(float(box.ap[i]),   3),
         })
 
-    # convergence epoch from results.csv
+    # best epoch from results.csv (row with highest mAP50 box)
     results_csv = save_dir / "results.csv"
     converged_epoch = None
+    total_epochs = None
     if results_csv.exists():
         import csv
         with open(results_csv) as f:
             rows = list(csv.DictReader(f))
         if rows:
-            converged_epoch = int(rows[-1]["epoch"])
+            rows = [{k.strip(): v.strip() for k, v in r.items()} for r in rows]
+            map50_col = next(
+                (k for k in rows[0]
+                 if "map50" in k.lower() and "95" not in k.lower() and "mask" not in k.lower()),
+                None,
+            )
+            if map50_col:
+                best_row = max(rows, key=lambda r: float(r[map50_col]))
+                converged_epoch = int(float(best_row["epoch"]))
+            total_epochs = int(float(rows[-1]["epoch"]))
 
     mask = metrics.seg if hasattr(metrics, "seg") else None
 
@@ -293,6 +303,7 @@ def _save_metrics_json(metrics, class_names: list[str], save_dir: Path):
         "per_class":      per_class,
         "class_names":    class_names,
         "converged_epoch": converged_epoch,
+        "total_epochs":    total_epochs,
     }
 
     out = save_dir / "metrics.json"

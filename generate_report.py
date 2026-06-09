@@ -245,7 +245,8 @@ def build():
     m          = load_metrics()
     ov         = m["overall"]
     per_class  = m["per_class"]
-    conv_epoch = m.get("converged_epoch")
+    conv_epoch   = m.get("converged_epoch")
+    total_epochs = m.get("total_epochs", 150)
 
     sorted_cls  = sorted(per_class, key=lambda c: c["mAP50"], reverse=True)
     best_cls    = sorted_cls[0]  if sorted_cls else {"class": "—", "mAP50": 0}
@@ -785,7 +786,7 @@ def build():
         ))
     else:
         story.append(subsec("7.1", "Overall Performance"))
-        epoch_str = (f"epoch {conv_epoch} of 150" if conv_epoch
+        epoch_str = (f"epoch {conv_epoch} of {total_epochs}" if conv_epoch
                      else "early stopping")
         story.append(p(
             f"Training converged at {epoch_str} (patience=40). "
