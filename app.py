@@ -511,15 +511,141 @@ def build_ui():
     herb_list = ", ".join(n for n in CLASS_NAMES if n != UNKNOWN_CLASS_NAME)
     expert_label_choices = [n for n in CLASS_NAMES if n != UNKNOWN_CLASS_NAME] + ["New / Unknown Species"]
 
+    _CSS = """
+    /* ── title / subtitle ─────────────────────────────────────── */
+    #title    { text-align: center; }
+    #subtitle { text-align: center; }
+
+    /* ── hero banner — per-theme ───────────────────────────────── */
+    .hero {
+        border-radius: 12px;
+        padding: 1.4rem 1.2rem;
+        margin-bottom: 0.6rem;
+        transition: background 0.35s ease;
+    }
+
+    /* Dark (default) — deep forest green */
+    html.dark .hero,
+    html[data-hs-theme="dark"] .hero {
+        background: linear-gradient(135deg, #122a1a 0%, #1c3a26 100%);
+    }
+    html.dark #subtitle,
+    html[data-hs-theme="dark"] #subtitle { color: #88bb99; }
+
+    /* Light — fresh meadow */
+    html[data-hs-theme="light"] .hero {
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+    }
+    html[data-hs-theme="light"] #subtitle { color: #3a6647; }
+
+    /* Nature — warm earth tones */
+    html[data-hs-theme="nature"] .hero {
+        background: linear-gradient(135deg, #f5efe0 0%, #e8ddc8 100%);
+    }
+    html[data-hs-theme="nature"] #subtitle { color: #7a5c2e; }
+
+    /* Ocean — cool coastal */
+    html[data-hs-theme="ocean"] .hero {
+        background: linear-gradient(135deg, #e0f2fb 0%, #c8e8f8 100%);
+    }
+    html[data-hs-theme="ocean"] #subtitle { color: #1a5f8a; }
+
+    /* System (no explicit theme attr) — falls back to OS */
+    html:not([data-hs-theme]) .hero {
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+    }
+    html.dark:not([data-hs-theme]) .hero {
+        background: linear-gradient(135deg, #122a1a 0%, #1c3a26 100%);
+    }
+    html:not([data-hs-theme]) #subtitle { color: #555; }
+    html.dark:not([data-hs-theme]) #subtitle { color: #88bb99; }
+
+    /* ── Nature accent overrides ──────────────────────────────── */
+    html[data-hs-theme="nature"] .primary { --button-primary-background-fill: #8B6914 !important; }
+    html[data-hs-theme="nature"] button.primary,
+    html[data-hs-theme="nature"] .gr-button-primary {
+        background: #8B6914 !important;
+    }
+
+    /* ── Ocean accent overrides ───────────────────────────────── */
+    html[data-hs-theme="ocean"] button.primary,
+    html[data-hs-theme="ocean"] .gr-button-primary {
+        background: #0077B6 !important;
+    }
+
+    /* ── theme-bar ────────────────────────────────────────────── */
+    #theme-bar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 4px 6px 4px;
+        flex-wrap: wrap;
+    }
+    #theme-bar label { font-size: 0.78rem; opacity: 0.7; margin-right: 4px; }
+    """
+
+    _INIT_JS = """
+    () => {
+        /* --- theme engine ---------------------------------------- */
+        const THEMES = {
+            'Dark': () => {
+                document.documentElement.classList.add('dark');
+                document.documentElement.setAttribute('data-hs-theme', 'dark');
+            },
+            'Light': () => {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.setAttribute('data-hs-theme', 'light');
+            },
+            'Nature': () => {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.setAttribute('data-hs-theme', 'nature');
+            },
+            'Ocean': () => {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.setAttribute('data-hs-theme', 'ocean');
+            },
+            'System': () => {
+                document.documentElement.removeAttribute('data-hs-theme');
+                const prefersDark = window.matchMedia &&
+                    window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (prefersDark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            },
+        };
+        window._hsSetTheme = (name) => {
+            if (THEMES[name]) {
+                THEMES[name]();
+                try { localStorage.setItem('hs_theme', name); } catch(e) {}
+            }
+        };
+
+        /* auto-listen for system colour-scheme changes */
+        try {
+            window.matchMedia('(prefers-color-scheme: dark)')
+                  .addEventListener('change', () => {
+                      const cur = localStorage.getItem('hs_theme') || 'Dark';
+                      if (cur === 'System') THEMES['System']();
+                  });
+        } catch(e) {}
+
+        /* apply saved or default theme */
+        let saved = 'Dark';
+        try { saved = localStorage.getItem('hs_theme') || 'Dark'; } catch(e) {}
+        window._hsSetTheme(saved);
+    }
+    """
+
+    _THEME_JS = "(t) => { window._hsSetTheme && window._hsSetTheme(t); return t; }"
+
     with gr.Blocks(
         title="Herbal Plant Recognition",
         theme=gr.themes.Soft(primary_hue="green", secondary_hue="emerald"),
-        css="""
-        #title    { text-align:center; }
-        #subtitle { text-align:center; color:#555; }
-        .hero { background:linear-gradient(135deg,#e8f5e9,#f1f8e9);
-                border-radius:12px; padding:1.2rem 1rem; margin-bottom:0.5rem; }
-        """,
+        css=_CSS,
+        js=_INIT_JS,
     ) as demo:
 
         # ── header ────────────────────────────────────────────────────────────
@@ -528,6 +654,14 @@ def build_ui():
             gr.Markdown(
                 "Identify medicinal herbs from a live photo or uploaded image using AI",
                 elem_id="subtitle",
+            )
+        with gr.Row(elem_id="theme-bar"):
+            gr.Markdown("**Theme:**")
+            theme_radio = gr.Radio(
+                choices=["Dark", "Light", "Nature", "Ocean", "System"],
+                value="Dark",
+                show_label=False,
+                container=False,
             )
 
         if model_err:
@@ -720,6 +854,12 @@ def build_ui():
             fn=submit_expert_query,
             inputs=[detection_state, desc_box, loc_box, contact_box],
             outputs=[expert_result],
+        )
+
+        theme_radio.change(
+            fn=None,
+            inputs=[theme_radio],
+            js=_THEME_JS,
         )
 
         # ── expert review wiring ───────────────────────────────────────────────
